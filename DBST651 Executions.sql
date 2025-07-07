@@ -16,7 +16,17 @@ DROP TABLE patient;
 DROP TABLE specialty;
 DROP TABLE doctor;
 DROP TABLE bloodwork;
---DROP TABLE student
+
+DROP TABLE course
+DROP TABLE enrollment
+DROP TABLE grade
+DROP TABLE grade_conversion
+DROP TABLE grade_type
+DROP TABLE grate_type_weight
+DROP TABLE instructor
+DROP TABLE section
+DROP TABLE student
+DROP TABLE zipcode
 
 
 -- Sequence for all pk's - surrogate keys
