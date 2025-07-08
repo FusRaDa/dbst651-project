@@ -1,3 +1,7 @@
+-- Turn on echo
+SET ECHO ON;
+
+
 -- Create development user
 CREATE USER c##dbst IDENTIFIED BY 651;
 
@@ -6,11 +10,12 @@ GRANT CREATE SESSION TO c##dbst;
 GRANT CREATE TABLE TO c##dbst;
 GRANT CREATE TRIGGER TO c##dbst;
 GRANT CREATE SEQUENCE TO c##dbst;
-GRANT CREATE PROCEDURE to c##dbst;
+GRANT CREATE PROCEDURE TO c##dbst;
+GRANT CREATE VIEW TO c##dbst;
 ALTER USER C##dbst QUOTA UNLIMITED ON USERS;
 
 
--- Drop all tables for testing purposes
+-- Drop all tables for testing purposes and clear project db
 DROP TABLE lab;
 DROP TABLE patient;
 DROP TABLE specialty;
@@ -28,15 +33,30 @@ DROP TABLE section
 DROP TABLE student
 DROP TABLE zipcode
 
+-- Drop sequences for testing
+DROP SEQUENCE pk_seq;
+DROP SEQUENCE med_license_seq;
+
+-- Drop indexes for testing
+DROP INDEX in_doctor_specialty;
+DROP INDEX in_bloodwork_patient;
+DROP INDEX in_bloodwork_doctor;
+DROP INDEX in_bloodwork_lab;
+
+-- Drop views for testing
+DROP VIEW first_patient_bloodwork_view;
+DROP VIEW doctor_specialty_view; 
+
+-- Drop triggers for testing
+DROP TRIGGER confirm_bloodwork_update;
+DROP TRIGGER prevent_bloodwork_update;
+
 
 -- Sequence for all pk's - surrogate keys
 CREATE SEQUENCE pk_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
 -- Sequence for natural key in doctor
 CREATE SEQUENCE med_license_seq START WITH 1245 INCREMENT BY 5 NOCYCLE;
 
--- Drop sequences for testing
---DROP SEQUENCE pk_seq;
---DROP SEQUENCE med_license_seq;
 
 
 -- Create tables with not null constraints/mandatory attributes
@@ -104,12 +124,6 @@ CREATE INDEX in_doctor_specialty ON doctor (specialty_fk);
 CREATE INDEX in_bloodwork_patient ON bloodwork (patient_fk);
 CREATE INDEX in_bloodwork_doctor ON bloodwork (doctor_fk);
 CREATE INDEX in_bloodwork_lab ON bloodwork (lab_fk);
-
--- Delete indexes for testing
--- DROP INDEX in_doctor_specialty;
--- DROP INDEX in_bloodwork_patient;
--- DROP INDEX in_bloodwork_doctor;
--- DROP INDEX in_bloodwork_lab;
 
 
 -- Triggers
@@ -257,10 +271,13 @@ END;
 -- Bloodwork data
 -- Patient 1's bloodwork history
 DECLARE
-  first_row_patient_id INT := (SELECT patient_id FROM patient WHERE ROWNUM=1);
-  first_row_doctor INT := (SELECT doctor_id FROM doctor WHERE ROWNUM=1);
-  first_row_lab INT := (SELECT lab_id FROM lab WHERE ROWNUM=1);
+  first_row_patient_id INT;
+  first_row_doctor INT;
+  first_row_lab INT;
 BEGIN
+  SELECT patient_id INTO first_row_patient_id FROM patient WHERE ROWNUM=1;
+  SELECT doctor_id INTO first_row_doctor FROM doctor WHERE ROWNUM=1;
+  SELECT lab_id INTO first_row_lab FROM lab WHERE ROWNUM=1;
 
   INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
   VALUES (250, 190, 25, 180, 0.92, 15.7, DATE '2025-06-15', first_row_patient_id, first_row_doctor, first_row_lab);
@@ -297,17 +314,21 @@ END;
 /
 
 
--- Functions to randomly select ID's of patient, doctor, and lab
+-- Functions to randomly select ID's of patient (except first patient in row), doctor, and lab
 CREATE OR REPLACE FUNCTION random_patient_id
 RETURN INT
-IS patient_id INT;
+IS 
+  patient_id INT;
+  first_row_patient_id INT;
 BEGIN
+  SELECT patient_id INTO first_row_patient_id FROM patient WHERE ROWNUM=1;
   SELECT patient_id INTO patient_id
   FROM (
     SELECT patient_id 
-    FROM   patient
+    FROM patient 
+    WHERE patient_id!=first_row_patient_id
     ORDER BY DBMS_RANDOM.RANDOM)
-  WHERE  rownum = 1;
+  WHERE ROWNUM = 1;
   RETURN patient_id;
   DBMS_OUTPUT.PUT_LINE(patient_id);
 END;
@@ -320,9 +341,9 @@ BEGIN
   SELECT doctor_id INTO doctor_id
   FROM (
     SELECT doctor_id 
-    FROM   doctor
+    FROM doctor
     ORDER BY DBMS_RANDOM.RANDOM)
-  WHERE  rownum = 1;
+  WHERE ROWNUM = 1;
   RETURN doctor_id;
   DBMS_OUTPUT.PUT_LINE(doctor_id);
 END;
@@ -335,9 +356,9 @@ BEGIN
   SELECT lab_id INTO lab_id
   FROM (
     SELECT lab_id 
-    FROM   lab
+    FROM lab
     ORDER BY DBMS_RANDOM.RANDOM)
-  WHERE  rownum = 1;
+  WHERE ROWNUM = 1;
   RETURN lab_id;
   DBMS_OUTPUT.PUT_LINE(lab_id);
 END;
@@ -412,17 +433,26 @@ END;
 /
 
 -- Views
--- This view shows all the bloodwork of the first patient added with primary key 1
-CREATE VIEW first_patient_bloodwork_view AS SELECT 
+-- This view shows all the bloodwork of the first patient in the first row
+CREATE OR REPLACE VIEW first_patient_bloodwork_view AS SELECT 
 bloodwork.cholesterol AS "Cholestorol (mg/dL)", bloodwork.triglycerides AS "Triglycerides (mg/dL)", 
 bloodwork.hdl AS "High Density Lipo-proteins (mg/dL)", bloodwork.ldl AS "Low Density Lipo-proteins (mg/dL)",
 bloodwork.creatinine AS "Creatinine (mg/dL)", bloodwork.bun AS "Blood Urea Nitrogen (mg/dL)", 
-bloodwork.date_tested AS "Date Tested", 'Dr. ' + doctor.last_name AS "Doctor", 
+bloodwork.date_tested AS "Date Tested", CONCAT('Dr. ', doctor.last_name) AS "Doctor", 
 lab.name AS "Laboratory" FROM bloodwork 
 INNER JOIN patient ON bloodwork.patient_fk=patient.patient_id
 INNER JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
 INNER JOIN lab ON bloodwork.lab_fk=lab.lab_id
-WHERE bloodwork.patient_fk=1;
+WHERE bloodwork.patient_fk=(SELECT patient_id FROM patient WHERE ROWNUM=1);
 
 
 -- This view shows all specialties, the number of bloodwork orders by doctors in that specialty they have done, and the number of patients they have worked within that specialty
+CREATE OR REPLACE VIEW doctor_specialty_view AS SELECT
+specialty.title, 
+AVG(FLOOR(MONTHS_BETWEEN(SYSDATE, doctor.dob)/12)) AS "Avg Doctor Age",
+AVG(doctor.yoe) AS "Doctor's Avg Years of Experience",
+COUNT(bloodwork.date_submitted) AS "Total Bloodwork Orders"
+FROM specialty 
+INNER JOIN doctor ON specialty.specialty_id=doctor.specialty_fk
+INNER JOIN bloodwork ON doctor.doctor_id=bloodwork.doctor_fk
+GROUP BY specialty.title;
