@@ -121,7 +121,7 @@ CREATE INDEX in_bloodwork_lab ON bloodwork (lab_fk);
 INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('BloodCorp', '4512 Maple Drive, Oakwood, CA 93514', 4544551454, 30000000);
 INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('DiagTest', '8901 Birch Avenue, Springfield, IL 62704', 3451112304, 450000);
 INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('TrackQuest', '2134 Pine Street, Rivertown, TX 75201', 4540438942, 750000);
-INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Labzone', '6789 Cedar Lane, Greenfield, WI 53220', 0238889090, 1500000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Labzone', '6789 Cedar Lane, Greenfield, WI 53220', 3238889090, 1500000);
 INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Stealth Health', '4321 Elm Road, Silver Creek, NV 89031', 3403300034, 300000);
 INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Blue Hero', '1567 Willow Boulevard, Lakeside, MI 49009', 7678873467, 2000000);
 INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('John & Jody', '3286 Cherry Circle, Sunnyside, FL 33603', 9045003445, 25000000);
@@ -480,14 +480,14 @@ JOIN doctor ON specialty.specialty_id=doctor.specialty_fk
 JOIN bloodwork ON doctor.doctor_id=bloodwork.doctor_fk;
 
 -- Query 8: Use GROUP BY and HAVING in a select statement using one or more tables 
-SELECT patient.patient_id, patient.first_name,
+SELECT patient.patient_id,
 COUNT(*) AS "# of Tests",
 FLOOR(AVG(bloodwork.cholesterol)) AS "Avg Cholesterol",
 FLOOR(AVG(bloodwork.ldl) )AS "Avg LDL",
 FLOOR(AVG(bloodwork.hdl) )AS "Avg HDL"
 FROM patient
 JOIN bloodwork ON patient.patient_id=bloodwork.patient_fk
-GROUP BY patient.patient_id, patient.first_name
+GROUP BY patient.patient_id
 HAVING FLOOR(AVG(bloodwork.cholesterol))>200;
 
 
@@ -513,28 +513,79 @@ ALTER TRIGGER prevent_bloodwork_update ENABLE;
 
 -- Perform 8 Additional Advanced Queries --
 
--- Query 13: show all bloodwork with doctor and specialty
-SELECT bloodwork.bloodwork_id, CONCAT('Dr.', doctor.last_name) AS "Doctor", specialty.title FROM bloodwork 
+-- Query 13: show cholesterol levels over 200 with patients and their doctor's specialty
+SELECT CONCAT('Dr.', doctor.last_name) AS "Doctor", 
+specialty.title, bloodwork.cholesterol AS "Cholesterol",
+patient.first_name ||' '|| patient.last_name AS "Patient",
+FLOOR(MONTHS_BETWEEN(SYSDATE, patient.dob)/12) AS "Patient Age"
+FROM bloodwork
 JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
-JOIN specialty ON doctor.specialty_fk=specialty.specialty_id;
-
--- Query 14: show bloodwork results with patient order by date tested
-SELECT * FROM patient
-JOIN bloodwork ON patient.patient_id=bloodwork.patient_fk
-ORDER BY bloodwork.date_tested;
-
--- Query 15: show all male patients order by dob and who age
-SELECT gender, first_name, last_name, dob, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) AS "Age"
-FROM patient WHERE gender='M'
-ORDER BY dob;
-
--- Query 16: show all doctors who have at least 25 years of experience
-SELECT doctor.first_name, doctor.last_name, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) AS "Age", 
-doctor.yoe, specialty.title, specialty.avg_salary
-FROM doctor 
+JOIN patient ON bloodwork.patient_fk=patient.patient_id
 JOIN specialty ON doctor.specialty_fk=specialty.specialty_id
-WHERE yoe >= 25 ORDER BY dob DESC;
+WHERE bloodwork.cholesterol>200
+ORDER BY bloodwork.cholesterol DESC;
 
--- Query 17: show all labs 
+-- Query 14: show doctor's # of tests ordered, and min/max age of their patients
+SELECT doctor.doctor_id, 
+CONCAT('Dr. ', doctor.last_name) AS "Doctor",
+COUNT(*) AS "# of Tests Ordered",
+MIN(FLOOR(MONTHS_BETWEEN(SYSDATE, patient.dob)/12)) AS "Youngest Patient",
+MAX(FLOOR(MONTHS_BETWEEN(SYSDATE, patient.dob)/12)) AS "Oldest Patient"
+FROM doctor
+JOIN bloodwork ON doctor.doctor_id=bloodwork.doctor_fk
+JOIN patient ON bloodwork.patient_fk=patient.patient_id
+GROUP BY doctor.doctor_id, doctor.last_name
+ORDER BY "# of Tests Ordered" DESC;
 
--- DML STATEMENTS --
+-- Query 15: show all patients that are between the min and max ages of doctors
+SELECT * FROM patient WHERE dob BETWEEN (SELECT MIN(dob) FROM doctor) AND (SELECT MAX(dob) FROM doctor);
+
+-- QUERY 16: show all lab's return rates (how fast they return results) 
+SELECT lab_id, name,
+FLOOR(AVG(ABS(TRUNC(bloodwork.date_tested) - TRUNC(bloodwork.date_submitted)))) AS "Avg Turnover Rate (Days)"
+FROM lab
+JOIN bloodwork ON lab.lab_id=bloodwork.lab_fk
+GROUP BY lab_id, name;
+
+-- Query 17: view labs and how many tests they've done
+SELECT lab.lab_id, lab.name,
+MAX(lab.yearly_profit) AS "Yearly Profit",
+COUNT(*) AS "# of Tests Done"
+FROM lab
+JOIN bloodwork ON lab.lab_id=bloodwork.lab_fk
+GROUP BY lab.lab_id, lab.name
+ORDER BY MAX(lab.yearly_profit) DESC;
+
+-- QUERY 18: Calculate and compare total cholesterol vs given cholesterol and produce a % difference as accuracy, show what is less than 5% difference
+SELECT NVL(ldl, 0) + NVL(hdl, 0) AS "SUM of LDL & HDL",
+.2 * NVL(triglycerides, 0) AS "20% of Triglycerides",
+(.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) AS "Calculated Total Cholesterol",
+cholesterol AS "Tested Cholesterol",
+ROUND(ABS((.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) - cholesterol)/(((.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) + cholesterol)/2)*100, 2) 
+AS "Percent Difference",
+lab.name
+FROM bloodwork 
+JOIN lab ON bloodwork.lab_fk=lab.lab_id
+WHERE ROUND(ABS((.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) - cholesterol)/(((.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) + cholesterol)/2)*100, 2) < 5;
+
+-- Query 19: Show all upcoming birthdays for patients and doctors
+SELECT * FROM
+(SELECT 'Doctor' AS "Doctor/Patient", dob, first_name, last_name, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) + 1 AS "Upcoming Age" FROM doctor
+UNION ALL
+SELECT 'Patient' AS "Doctor/Patient", dob, first_name, last_name, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) + 1 AS "Upcoming Age" FROM patient)
+WHERE EXTRACT(MONTH FROM dob) >= EXTRACT(MONTH FROM SYSDATE)
+ORDER BY EXTRACT(MONTH FROM dob) ASC, EXTRACT(DAY FROM dob) ASC;
+
+-- Query 20: Group bloodwork results by gender and show median test results
+SELECT gender,
+COUNT(*) AS "of Tests",
+TO_CHAR(MEDIAN(cholesterol), 'fm9999990.00') AS "Avg Cholesterol",
+TO_CHAR(MEDIAN(triglycerides), 'fm9999990.00') AS "Avg Triglycerides",
+TO_CHAR(MEDIAN(hdl), 'fm9999990.00') AS "Avg HDL",
+TO_CHAR(MEDIAN(ldl), 'fm9999990.00') AS "Avg LDL",
+TO_CHAR(MEDIAN(creatinine), 'fm9999990.00') AS "Avg Creatinine",
+TO_CHAR(MEDIAN(bun), 'fm9999990.00') AS "Avg BUN"
+FROM bloodwork
+JOIN patient ON bloodwork.patient_fk=patient.patient_id
+GROUP BY gender;
+
