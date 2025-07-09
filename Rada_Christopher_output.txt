@@ -1,0 +1,622 @@
+SQL> -- SETTINGS --
+SQL> -- Turn on echo, serveroutput, linesize, and pagesize
+SQL> SET ECHO ON
+SQL> SET SERVEROUTPUT ON
+SQL> SET LINESIZE 150
+SQL> SET PAGESIZE 30
+SQL> -- SETTINGS --
+SQL> 
+SQL> 
+SQL> -- DROPS --
+SQL> -- Drop all tables for testing purposes and clear project db
+SQL> DROP TABLE bloodwork;
+
+Table BLOODWORK dropped.
+
+SQL> DROP TABLE lab;
+
+Table LAB dropped.
+
+SQL> DROP TABLE patient;
+
+Table PATIENT dropped.
+
+SQL> DROP TABLE doctor;
+
+Table DOCTOR dropped.
+
+SQL> DROP TABLE specialty;
+
+Table SPECIALTY dropped.
+
+SQL> 
+SQL> -- Uncomment & run if on DBST651 Remote Lab Computer
+SQL> -- DROP TABLE course;
+SQL> -- DROP TABLE enrollment;
+SQL> -- DROP TABLE grade;
+SQL> -- DROP TABLE grade_conversion;
+SQL> -- DROP TABLE grade_type;
+SQL> -- DROP TABLE grate_type_weight;
+SQL> -- DROP TABLE instructor;
+SQL> -- DROP TABLE section;
+SQL> -- DROP TABLE student;
+SQL> -- DROP TABLE zipcode;
+SQL> 
+SQL> -- Drop sequences for testing
+SQL> DROP SEQUENCE pk_seq;
+
+Sequence PK_SEQ dropped.
+
+SQL> DROP SEQUENCE med_license_seq;
+
+Sequence MED_LICENSE_SEQ dropped.
+
+SQL> -- DROPS --
+SQL> 
+SQL> 
+SQL> -- SEQUENCES --
+SQL> -- Sequence for all pk's - surrogate keys
+SQL> CREATE SEQUENCE pk_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
+
+Sequence PK_SEQ created.
+
+SQL> -- Sequence for natural key in doctor
+SQL> CREATE SEQUENCE med_license_seq START WITH 1245 INCREMENT BY 5 NOCYCLE;
+
+Sequence MED_LICENSE_SEQ created.
+
+SQL> -- SEQUENCES --
+SQL> 
+SQL> 
+SQL> -- TABLES --
+SQL> CREATE TABLE lab (
+  2    lab_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  3    name VARCHAR(200) NOT NULL,
+  4    address VARCHAR(200) NOT NULL,
+  5    phone_number INT NOT NULL
+  6  );
+
+Table LAB created.
+
+SQL> 
+SQL> CREATE TABLE patient (
+  2    patient_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  3    dob DATE NOT NULL,
+  4    gender VARCHAR(1) CONSTRAINT GenderDomain CHECK (GENDER IN ('M', 'F')) NOT NULL, -- M is male, F is female
+  5    first_name VARCHAR(200) NOT NULL,
+  6    last_name VARCHAR(200) NOT NULL,
+  7    email VARCHAR(200),
+  8    phone_number VARCHAR(200) NOT NULL
+  9  );
+
+Table PATIENT created.
+
+SQL> 
+SQL> CREATE TABLE specialty (
+  2    specialty_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  3    title VARCHAR(200) NOT NULL,
+  4    description VARCHAR(200),
+  5    avg_tuition INT,
+  6    avg_salary INT
+  7  );
+
+Table SPECIALTY created.
+
+SQL> 
+SQL> CREATE TABLE doctor (
+  2    doctor_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  3    first_name VARCHAR(200) NOT NULL,
+  4    last_name VARCHAR(200) NOT NULL,
+  5    dob DATE NOT NULL,
+  6    yoe INT NOT NULL, -- years of experience
+  7    med_license INT DEFAULT med_license_seq.NEXTVAL,
+  8    specialty_fk INT,
+  9    FOREIGN KEY (specialty_fk) REFERENCES specialty(specialty_id)
+ 10    ON DELETE SET NULL
+ 11  );
+
+Table DOCTOR created.
+
+SQL> 
+SQL> CREATE TABLE bloodwork (
+  2    bloodwork_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  3    cholesterol FLOAT, --100 to 300
+  4    triglycerides FLOAT, --
+  5    hdl FLOAT, --25 to 150
+  6    ldl FLOAT, --25 to 150
+  7    creatinine FLOAT,
+  8    bun FLOAT,
+  9    date_tested DATE,
+ 10    date_submitted DATE DEFAULT CURRENT_DATE,
+ 11    patient_fk INT,
+ 12    doctor_fk INT,
+ 13    lab_fk INT,
+ 14    FOREIGN KEY (patient_fk) REFERENCES patient(patient_id) ON DELETE SET NULL,
+ 15    FOREIGN KEY (doctor_fk) REFERENCES doctor(doctor_id) ON DELETE SET NULL,
+ 16    FOREIGN KEY (lab_fk) REFERENCES lab(lab_id) ON DELETE SET NULL
+ 17  );
+
+Table BLOODWORK created.
+
+SQL> -- TABLES --
+SQL> 
+SQL> 
+SQL> -- INDEXES --
+SQL> CREATE INDEX in_doctor_specialty ON doctor (specialty_fk);
+
+Index IN_DOCTOR_SPECIALTY created.
+
+SQL> CREATE INDEX in_bloodwork_patient ON bloodwork (patient_fk);
+
+Index IN_BLOODWORK_PATIENT created.
+
+SQL> CREATE INDEX in_bloodwork_doctor ON bloodwork (doctor_fk);
+
+Index IN_BLOODWORK_DOCTOR created.
+
+SQL> CREATE INDEX in_bloodwork_lab ON bloodwork (lab_fk);
+
+Index IN_BLOODWORK_LAB created.
+
+SQL> -- INDEXES --
+SQL> 
+SQL> 
+SQL> -- INSERT TABLE DATA --
+SQL> -- Lab data
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('BloodCorp', '4512 Maple Drive, Oakwood, CA 93514', 4544551454);
+
+1 row inserted.
+
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('DiagTest', '8901 Birch Avenue, Springfield, IL 62704', 3451112304);
+
+1 row inserted.
+
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('TrackQuest', '2134 Pine Street, Rivertown, TX 75201', 4540438942);
+
+1 row inserted.
+
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('Labzone', '6789 Cedar Lane, Greenfield, WI 53220', 0238889090);
+
+1 row inserted.
+
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('Stealth Health', '4321 Elm Road, Silver Creek, NV 89031', 3403300034);
+
+1 row inserted.
+
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('Blue Hero', '1567 Willow Boulevard, Lakeside, MI 49009', 7678873467);
+
+1 row inserted.
+
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('John & Jody', '3286 Cherry Circle, Sunnyside, FL 33603', 9045003445);
+
+Substitution cancelled
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('Freedom University', '8954 Aspen Court, Brookfield, OH 44017', 1232344545);
+
+1 row inserted.
+
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('Clinical Care', '1023 Oakwood Parkway, Millbrook, NY 12545', 9898444569);
+
+1 row inserted.
+
+SQL> INSERT INTO lab (name, address, phone_number) VALUES ('Riskaverse', '7432 Maple Ridge, Highland Park, NJ 08901', 3440065600);
+
+1 row inserted.
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> -- Patient data
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  VALUES (DATE '1987-01-25', 'M', 'Smith', 'John', 'john.smith@example.com', 5551234567);
+
+1 row inserted.
+
+SQL> 
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  VALUES (DATE '1995-03-17', 'F', 'Johnson', 'Emily', 'emily.johnson@example.com', 5552345678);
+
+1 row inserted.
+
+SQL> 
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  VALUES (DATE '1983-06-29', 'M', 'Brown', 'Michael', 'michael.brown@example.com', 5553456789);
+
+1 row inserted.
+
+SQL> 
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  VALUES (DATE '2000-10-02', 'F', 'Davis', 'Sarah', 'sarah.davis@example.com', 5554567890);
+
+1 row inserted.
+
+SQL> 
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  VALUES (DATE '1978-09-14', 'M', 'Miller', 'James', 'james.miller@example.com', 5555678901);
+
+1 row inserted.
+
+SQL> 
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  VALUES (DATE '1990-04-25', 'F', 'Wilson', 'Olivia', 'olivia.wilson@example.com', 5556789012);
+
+1 row inserted.
+
+SQL> 
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  VALUES (DATE '1993-01-11', 'M', 'Moore', 'David', 'david.moore@example.com', 5557890123);
+
+1 row inserted.
+
+SQL> 
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  VALUES (DATE '1985-11-06', 'F', 'Taylor', 'Jessica', 'jessica.taylor@example.com', 5558901234);
+
+1 row inserted.
+
+SQL> 
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  VALUES (DATE '1998-02-18', 'M', 'Anderson', 'Daniel', 'daniel.anderson@example.com', 5559012345);
+
+1 row inserted.
+
+SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+  2  
+  3  VALUES (DATE '1981-07-09', 'F', 'Thomas', 'Laura', 'laura.thomas@example.com', 5550123456);
+
+1 row inserted.
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> -- Specialty data
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Cardiology', 'Specializes in diagnosing and treating heart diseases.', 200000, 400000);
+
+1 row inserted.
+
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Neurology', 'Focuses on disorders of the brain, spinal cord, and nervous system.', 200000, 250000);
+
+1 row inserted.
+
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Orthopedic Surgery', 'Specializes in the treatment of musculoskeletal issues such as bones, joints, and ligaments.', 200000, 500000);
+
+1 row inserted.
+
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Pediatrics', 'Medical care for infants, children, and adolescents.', 200000, 180000);
+
+1 row inserted.
+
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Dermatology', 'Focuses on the diagnosis and treatment of skin, hair, and nail conditions.', 200000, 350000);
+
+1 row inserted.
+
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Psychiatry', 'Specializes in mental health, including diagnosing and treating disorders such as depression, anxiety, and schizophrenia.', 200000, 220000);
+
+1 row inserted.
+
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Obstetrics and Gynecology (OB/GYN)', 'Focuses on women’s health, including pregnancy, childbirth, and reproductive system disorders.', 200000, 280000);
+
+1 row inserted.
+
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Gastroenterology', 'Specializes in the digestive system, including the stomach, intestines, and liver.', 200000, 400000);
+
+1 row inserted.
+
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Endocrinology', 'Deals with disorders of the endocrine system, including diabetes, thyroid conditions, and hormonal imbalances.', 200000, 250000);
+
+1 row inserted.
+
+SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Oncology', 'Specializes in diagnosing and treating cancer, including chemotherapy and radiation.', 200000, 400000);
+
+1 row inserted.
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> -- Doctor data
+SQL> DECLARE
+  2    cardiology_id INT;
+  3    neurology_id INT;
+  4    orthopedic_id INT;
+  5    pediatrics_id INT;
+  6    dermatology_id INT;
+  7    obgyn_id INT;
+  8    gastroenterology_id INT;
+  9    endocrinology_id INT;
+ 10    oncology_id INT;
+ 11  BEGIN
+ 12    SELECT specialty_id INTO cardiology_id FROM specialty WHERE title='Cardiology';
+ 13    SELECT specialty_id INTO neurology_id FROM specialty WHERE title='Neurology';
+ 14    SELECT specialty_id INTO orthopedic_id FROM specialty WHERE title='Orthopedic Surgery';
+ 15    SELECT specialty_id INTO pediatrics_id FROM specialty WHERE title='Pediatrics';
+ 16    SELECT specialty_id INTO dermatology_id FROM specialty WHERE title='Dermatology';
+ 17    SELECT specialty_id INTO obgyn_id FROM specialty WHERE title='Obstetrics and Gynecology (OB/GYN)';
+ 18    SELECT specialty_id INTO gastroenterology_id FROM specialty WHERE title='Gastroenterology';
+ 19    SELECT specialty_id INTO endocrinology_id FROM specialty WHERE title='Endocrinology';
+ 20    SELECT specialty_id INTO oncology_id FROM specialty WHERE title='Oncology';
+ 21  
+ 22    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 23    VALUES ('John', 'Smith', DATE '1982-05-12', 23, cardiology_id);
+ 24  
+ 25    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 26    VALUES ('Emily', 'Johnson', DATE '1978-03-17', 28, neurology_id);
+ 27  
+ 28    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 29    VALUES ('Michael', 'Brown', DATE '1983-06-29', 22, orthopedic_id);
+ 30  
+ 31    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 32    VALUES ('Sarah', 'Davis', DATE '1975-10-02', 30, pediatrics_id);
+ 33  
+ 34    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 35    VALUES ('James', 'Miller', DATE '1980-09-14', 25, oncology_id);
+ 36  
+ 37    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 38    VALUES ('Olivia', 'Wilson', DATE '1985-04-25', 20, dermatology_id);
+ 39  
+ 40    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 41    VALUES ('David', 'Moore', DATE '1976-01-11', 29, obgyn_id);
+ 42  
+ 43    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 44    VALUES ('Jessica', 'Taylor', DATE '1984-11-06', 21, endocrinology_id);
+ 45  
+ 46    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 47    VALUES ('Daniel', 'Anderson', DATE '1980-02-18', 26, oncology_id);
+ 48  
+ 49    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
+ 50    VALUES ('Laura', 'Thomas', DATE '1972-07-09', 33, oncology_id);
+ 51    COMMIT;
+ 52  
+ 53  END;
+ 54  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- Bloodwork data
+SQL> -- Patient 1's bloodwork history
+SQL> DECLARE
+  2    first_row_patient_id INT;
+  3    first_row_doctor INT;
+  4    first_row_lab INT;
+  5  BEGIN
+  6    SELECT patient_id INTO first_row_patient_id FROM patient WHERE ROWNUM=1;
+  7    SELECT doctor_id INTO first_row_doctor FROM doctor WHERE ROWNUM=1;
+  8    SELECT lab_id INTO first_row_lab FROM lab WHERE ROWNUM=1;
+  9  
+ 10    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 11    VALUES (250, 190, 25, 180, 0.92, 15.7, DATE '2025-06-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 12  
+ 13    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 14    VALUES (240, 185, 28, 169, 0.95, 15.3, DATE '2025-07-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 15  
+ 16    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 17    VALUES (230, 180, 31, 158, 0.91, 15.9, DATE '2025-08-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 18  
+ 19    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 20    VALUES (220, 175, 34, 147, 0.99, 14.8, DATE '2025-09-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 21  
+ 22    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 23    VALUES (210, 170, 37, 136, 0.94, 15.2, DATE '2025-10-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 24  
+ 25    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 26    VALUES (200, 165, 40, 125, 0.98, 14.6, DATE '2025-11-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 27  
+ 28    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 29    VALUES (190, 160, 43, 114, 0.93, 15.4, DATE '2025-12-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 30  
+ 31    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 32    VALUES (180, 155, 46, 103, 0.90, 15.1, DATE '2026-01-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 33  
+ 34    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 35    VALUES (170, 150, 49, 92, 0.97, 14.9, DATE '2026-02-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 36  
+ 37    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 38    VALUES (160, 145, 52, 81, 0.91, 14.7, DATE '2026-03-15', first_row_patient_id, first_row_doctor, first_row_lab);
+ 39    COMMIT;
+ 40  
+ 41  END;
+ 42  /
+
+PL/SQL procedure successfully completed.
+
+SQL> -- INSERT TABLE DATA --
+SQL> 
+SQL> 
+SQL> -- Functions to randomly select ID's of patient (except first patient in row), doctor, and lab
+SQL> CREATE OR REPLACE FUNCTION random_patient_id
+  2  RETURN INT
+  3  IS 
+  4    patient_id INT;
+  5    first_row_patient_id INT;
+  6  BEGIN
+  7    SELECT patient_id INTO first_row_patient_id FROM patient WHERE ROWNUM=1;
+  8    SELECT patient_id INTO patient_id
+  9    FROM (
+ 10      SELECT patient_id 
+ 11      FROM patient 
+ 12      WHERE patient_id!=first_row_patient_id
+ 13      ORDER BY DBMS_RANDOM.RANDOM)
+ 14    WHERE ROWNUM = 1;
+ 15    RETURN patient_id;
+ 16    DBMS_OUTPUT.PUT_LINE(patient_id);
+ 17  END;
+ 18  /
+
+Function RANDOM_PATIENT_ID compiled
+
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION random_doctor_id
+  2  RETURN INT
+  3  IS doctor_id INT;
+  4  BEGIN
+  5    SELECT doctor_id INTO doctor_id
+  6    FROM (
+  7      SELECT doctor_id 
+  8      FROM doctor
+  9      ORDER BY DBMS_RANDOM.RANDOM)
+ 10    WHERE ROWNUM = 1;
+ 11    RETURN doctor_id;
+ 12    DBMS_OUTPUT.PUT_LINE(doctor_id);
+ 13  END;
+ 14  /
+
+Function RANDOM_DOCTOR_ID compiled
+
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION random_lab_id
+  2  RETURN INT
+  3  IS lab_id INT;
+  4  BEGIN
+  5    SELECT lab_id INTO lab_id
+  6    FROM (
+  7      SELECT lab_id 
+  8      FROM lab
+  9      ORDER BY DBMS_RANDOM.RANDOM)
+ 10    WHERE ROWNUM = 1;
+ 11    RETURN lab_id;
+ 12    DBMS_OUTPUT.PUT_LINE(lab_id);
+ 13  END;
+ 14  /
+
+Function RANDOM_LAB_ID compiled
+
+SQL> 
+SQL> -- Random bloodwork for the rest of the patients
+SQL> BEGIN
+  2  
+  3    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+  4    VALUES (227, 391, 64, 137, 1.12, 17.4, DATE '2024-12-03', random_patient_id, random_doctor_id, random_lab_id);
+  5  
+  6    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+  7    VALUES (163, 237, 53, 112, 0.94, 25.3, DATE '2024-03-07', random_patient_id, random_doctor_id, random_lab_id);
+  8  
+  9    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 10    VALUES (291, 480, 76, 183, 1.07, 16.8, DATE '2025-07-19', random_patient_id, random_doctor_id, random_lab_id);
+ 11  
+ 12    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 13    VALUES (115, 293, 39, 121, 1.01, 28.6, DATE '2025-10-22', random_patient_id, random_doctor_id, random_lab_id);
+ 14  
+ 15    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 16    VALUES (250, 126, 87, 110, 0.95, 12.9, DATE '2025-11-16', random_patient_id, random_doctor_id, random_lab_id);
+ 17  
+ 18    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 19    VALUES (139, 376, 59, 159, 1.14, 18.4, DATE '2026-01-05', random_patient_id, random_doctor_id, random_lab_id);
+ 20  
+ 21    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 22    VALUES (284, 262, 41, 96, 0.82, 19.2, DATE '2026-06-02', random_patient_id, random_doctor_id, random_lab_id);
+ 23  
+ 24    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 25    VALUES (205, 182, 28, 88, 0.91, 27.5, DATE '2026-08-13', random_patient_id, random_doctor_id, random_lab_id);
+ 26  
+ 27    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 28    VALUES (175, 123, 49, 172, 1.04, 22.1, DATE '2026-02-18', random_patient_id, random_doctor_id, random_lab_id);
+ 29  
+ 30    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 31    VALUES (261, 305, 57, 153, 1.08, 13.3, DATE '2026-04-25', random_patient_id, random_doctor_id, random_lab_id);
+ 32  
+ 33    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 34    VALUES (212, 257, 62, 119, 1.02, 21.7, DATE '2026-08-03', random_patient_id, random_doctor_id, random_lab_id);
+ 35  
+ 36    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 37    VALUES (236, 426, 22, 107, 0.88, 24.6, DATE '2026-05-15', random_patient_id, random_doctor_id, random_lab_id);
+ 38  
+ 39    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 40    VALUES (265, 315, 54, 174, 1.13, 10.8, DATE '2026-09-30', random_patient_id, random_doctor_id, random_lab_id);
+ 41  
+ 42    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 43    VALUES (214, 188, 36, 135, 1.05, 15.4, DATE '2026-11-08', random_patient_id, random_doctor_id, random_lab_id);
+ 44  
+ 45    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 46    VALUES (276, 442, 64, 133, 0.91, 28.2, DATE '2027-01-19', random_patient_id, random_doctor_id, random_lab_id);
+ 47  
+ 48    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 49    VALUES (133, 163, 78, 109, 0.97, 11.5, DATE '2027-02-27', random_patient_id, random_doctor_id, random_lab_id);
+ 50  
+ 51    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 52    VALUES (192, 345, 40, 125, 1.12, 20.6, DATE '2027-07-12', random_patient_id, random_doctor_id, random_lab_id);
+ 53  
+ 54    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 55    VALUES (281, 208, 67, 150, 0.89, 26.3, DATE '2027-09-09', random_patient_id, random_doctor_id, random_lab_id);
+ 56  
+ 57    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 58    VALUES (154, 131, 90, 94, 0.96, 24.0, DATE '2027-12-04', random_patient_id, random_doctor_id, random_lab_id);
+ 59  
+ 60    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
+ 61    VALUES (239, 399, 23, 182, 1.09, 14.7, DATE '2027-05-17', random_patient_id, random_doctor_id, random_lab_id);
+ 62    COMMIT;
+ 63  
+ 64  END;
+ 65  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> -- VIEWS --
+SQL> -- This view shows all the bloodwork of the first patient in the first row
+SQL> CREATE OR REPLACE VIEW first_patient_bloodwork_view AS SELECT 
+  2  bloodwork.cholesterol AS "Cholestorol (mg/dL)", bloodwork.triglycerides AS "Triglycerides (mg/dL)", 
+  3  bloodwork.hdl AS "High Density Lipo-proteins (mg/dL)", bloodwork.ldl AS "Low Density Lipo-proteins (mg/dL)",
+  4  bloodwork.creatinine AS "Creatinine (mg/dL)", bloodwork.bun AS "Blood Urea Nitrogen (mg/dL)", 
+  5  bloodwork.date_tested AS "Date Tested", CONCAT('Dr. ', doctor.last_name) AS "Doctor", 
+  6  lab.name AS "Laboratory" FROM bloodwork 
+  7  INNER JOIN patient ON bloodwork.patient_fk=patient.patient_id
+  8  INNER JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
+  9  INNER JOIN lab ON bloodwork.lab_fk=lab.lab_id
+ 10  WHERE bloodwork.patient_fk=(SELECT patient_id FROM patient WHERE ROWNUM=1);
+
+View FIRST_PATIENT_BLOODWORK_VIEW created.
+
+SQL> 
+SQL> 
+SQL> -- This view shows all specialties that have the avg doctor age, avg years of experience, and the number of bloodwork orders
+SQL> CREATE OR REPLACE VIEW doctor_specialty_view AS SELECT
+  2  specialty.title, 
+  3  AVG(FLOOR(MONTHS_BETWEEN(SYSDATE, doctor.dob)/12)) AS "Avg Doctor Age",
+  4  AVG(doctor.yoe) AS "Doctor's Avg Years of Experience",
+  5  COUNT(bloodwork.date_submitted) AS "Total Bloodwork Orders"
+  6  FROM specialty 
+  7  INNER JOIN doctor ON specialty.specialty_id=doctor.specialty_fk
+  8  INNER JOIN bloodwork ON doctor.doctor_id=bloodwork.doctor_fk
+  9  GROUP BY specialty.title;
+
+View DOCTOR_SPECIALTY_VIEW created.
+
+SQL> -- VIEWS --
+SQL> 
+SQL> 
+SQL> -- TRIGGERS --
+SQL> -- This trigger prevents the date tested to be updated in the bloodwork unless all blood results have been filled in
+SQL> CREATE OR REPLACE TRIGGER confirm_bloodwork_update AFTER UPDATE ON bloodwork FOR EACH ROW
+  2  WHEN (NEW.date_tested IS NOT NULL 
+  3  AND (NEW.cholesterol IS NULL
+  4  OR NEW.cholesterol IS NULL
+  5  OR NEW.cholesterol IS NULL
+  6  OR NEW.cholesterol IS NULL
+  7  OR NEW.cholesterol IS NULL
+  8  OR NEW.cholesterol IS NULL))
+  9  BEGIN
+ 10    DBMS_OUTPUT.PUT_LINE('Bloodwork results must all be filled in before updating test date.');
+ 11    ROLLBACK;
+ 12  END;
+ 13  /
+
+Trigger CONFIRM_BLOODWORK_UPDATE compiled
+
+SQL> -- / -> End of first trigger block
+SQL> 
+SQL> --This trigger prevents bloodwork from being updated if the date tested is not null
+SQL> CREATE OR REPLACE TRIGGER prevent_bloodwork_update AFTER UPDATE ON bloodwork FOR EACH ROW
+  2  WHEN (NEW.date_tested IS NOT NULL)
+  3  BEGIN
+  4    DBMS_OUTPUT.PUT_LINE('Bloodwork can no longer be updated if date tested has been entered.');
+  5    ROLLBACK;
+  6  END;
+  7  -- TRIGGERS --
+
+Trigger PREVENT_BLOODWORK_UPDATE compiled
