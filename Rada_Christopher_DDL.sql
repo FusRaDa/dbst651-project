@@ -28,14 +28,23 @@ DROP TABLE specialty;
 -- DROP TABLE zipcode;
 
 -- Drop sequences for testing
-DROP SEQUENCE pk_seq;
+DROP SEQUENCE lab_seq;
+DROP SEQUENCE patient_seq;
+DROP SEQUENCE specialty_seq;
+DROP SEQUENCE doctor_seq;
+DROP SEQUENCE bloodwork_seq;
 DROP SEQUENCE med_license_seq;
 -- DROPS --
 
 
 -- SEQUENCES --
 -- Sequence for all pk's - surrogate keys
-CREATE SEQUENCE pk_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
+CREATE SEQUENCE lab_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
+CREATE SEQUENCE patient_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
+CREATE SEQUENCE specialty_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
+CREATE SEQUENCE doctor_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
+CREATE SEQUENCE bloodwork_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
+
 -- Sequence for natural key in doctor
 CREATE SEQUENCE med_license_seq START WITH 1245 INCREMENT BY 5 NOCYCLE;
 -- SEQUENCES --
@@ -43,14 +52,15 @@ CREATE SEQUENCE med_license_seq START WITH 1245 INCREMENT BY 5 NOCYCLE;
 
 -- TABLES --
 CREATE TABLE lab (
-  lab_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  lab_id INT DEFAULT lab_seq.NEXTVAL PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
   address VARCHAR(200) NOT NULL,
-  phone_number INT NOT NULL
+  phone_number INT NOT NULL,
+  yearly_profit INT NOT NULL
 );
 
 CREATE TABLE patient (
-  patient_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  patient_id INT DEFAULT patient_seq.NEXTVAL PRIMARY KEY,
   dob DATE NOT NULL,
   gender VARCHAR(1) CONSTRAINT GenderDomain CHECK (GENDER IN ('M', 'F')) NOT NULL, -- M is male, F is female
   first_name VARCHAR(200) NOT NULL,
@@ -60,7 +70,7 @@ CREATE TABLE patient (
 );
 
 CREATE TABLE specialty (
-  specialty_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  specialty_id INT DEFAULT specialty_seq.NEXTVAL PRIMARY KEY,
   title VARCHAR(200) NOT NULL,
   description VARCHAR(200),
   avg_tuition INT,
@@ -68,19 +78,18 @@ CREATE TABLE specialty (
 );
 
 CREATE TABLE doctor (
-  doctor_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  doctor_id INT DEFAULT doctor_seq.NEXTVAL PRIMARY KEY,
   first_name VARCHAR(200) NOT NULL,
   last_name VARCHAR(200) NOT NULL,
   dob DATE NOT NULL,
   yoe INT NOT NULL, -- years of experience
   med_license INT DEFAULT med_license_seq.NEXTVAL,
   specialty_fk INT,
-  FOREIGN KEY (specialty_fk) REFERENCES specialty(specialty_id)
-  ON DELETE SET NULL
+  FOREIGN KEY (specialty_fk) REFERENCES specialty(specialty_id) ON DELETE SET NULL
 );
 
 CREATE TABLE bloodwork (
-  bloodwork_id INT DEFAULT pk_seq.NEXTVAL PRIMARY KEY,
+  bloodwork_id INT DEFAULT bloodwork_seq.NEXTVAL PRIMARY KEY,
   cholesterol FLOAT, --100 to 300
   triglycerides FLOAT, --
   hdl FLOAT, --25 to 150
@@ -109,49 +118,50 @@ CREATE INDEX in_bloodwork_lab ON bloodwork (lab_fk);
 
 -- INSERT TABLE DATA --
 -- Lab data
-INSERT INTO lab (name, address, phone_number) VALUES ('BloodCorp', '4512 Maple Drive, Oakwood, CA 93514', 4544551454);
-INSERT INTO lab (name, address, phone_number) VALUES ('DiagTest', '8901 Birch Avenue, Springfield, IL 62704', 3451112304);
-INSERT INTO lab (name, address, phone_number) VALUES ('TrackQuest', '2134 Pine Street, Rivertown, TX 75201', 4540438942);
-INSERT INTO lab (name, address, phone_number) VALUES ('Labzone', '6789 Cedar Lane, Greenfield, WI 53220', 0238889090);
-INSERT INTO lab (name, address, phone_number) VALUES ('Stealth Health', '4321 Elm Road, Silver Creek, NV 89031', 3403300034);
-INSERT INTO lab (name, address, phone_number) VALUES ('Blue Hero', '1567 Willow Boulevard, Lakeside, MI 49009', 7678873467);
-INSERT INTO lab (name, address, phone_number) VALUES ('John & Jody', '3286 Cherry Circle, Sunnyside, FL 33603', 9045003445);
-INSERT INTO lab (name, address, phone_number) VALUES ('Freedom University', '8954 Aspen Court, Brookfield, OH 44017', 1232344545);
-INSERT INTO lab (name, address, phone_number) VALUES ('Clinical Care', '1023 Oakwood Parkway, Millbrook, NY 12545', 9898444569);
-INSERT INTO lab (name, address, phone_number) VALUES ('Riskaverse', '7432 Maple Ridge, Highland Park, NJ 08901', 3440065600);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('BloodCorp', '4512 Maple Drive, Oakwood, CA 93514', 4544551454, 30000000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('DiagTest', '8901 Birch Avenue, Springfield, IL 62704', 3451112304, 450000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('TrackQuest', '2134 Pine Street, Rivertown, TX 75201', 4540438942, 750000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Labzone', '6789 Cedar Lane, Greenfield, WI 53220', 0238889090, 1500000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Stealth Health', '4321 Elm Road, Silver Creek, NV 89031', 3403300034, 300000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Blue Hero', '1567 Willow Boulevard, Lakeside, MI 49009', 7678873467, 2000000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('John & Jody', '3286 Cherry Circle, Sunnyside, FL 33603', 9045003445, 25000000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Freedom University', '8954 Aspen Court, Brookfield, OH 44017', 1232344545, 1000000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Clinical Care', '1023 Oakwood Parkway, Millbrook, NY 12545', 9898444569, 40000000);
+INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Riskaverse', '7432 Maple Ridge, Highland Park, NJ 08901', 3440065600, 160000);
 COMMIT;
 
 -- Patient data
 INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-VALUES (DATE '1987-01-25', 'M', 'Smith', 'John', 'john.smith@example.com', 5551234567);
+VALUES (DATE '1987-01-25', 'M', 'Walker', 'Ethan', 'ethan.walker@example.com', '5551234567');
 
 INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-VALUES (DATE '1995-03-17', 'F', 'Johnson', 'Emily', 'emily.johnson@example.com', 5552345678);
+VALUES (DATE '1995-03-17', 'F', 'Murphy', 'Lily', 'lily.murphy@example.com', '5552345678');
 
 INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-VALUES (DATE '1983-06-29', 'M', 'Brown', 'Michael', 'michael.brown@example.com', 5553456789);
+VALUES (DATE '1983-06-29', 'M', 'Reed', 'Noah', 'noah.reed@example.com', '5553456789');
 
 INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-VALUES (DATE '2000-10-02', 'F', 'Davis', 'Sarah', 'sarah.davis@example.com', 5554567890);
+VALUES (DATE '2000-10-02', 'F', 'Bailey', 'Grace', 'grace.bailey@example.com', '5554567890');
 
 INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-VALUES (DATE '1978-09-14', 'M', 'Miller', 'James', 'james.miller@example.com', 5555678901);
+VALUES (DATE '1978-09-14', 'M', 'Jenkins', 'Owen', 'owen.jenkins@example.com', '5555678901');
 
 INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-VALUES (DATE '1990-04-25', 'F', 'Wilson', 'Olivia', 'olivia.wilson@example.com', 5556789012);
+VALUES (DATE '1990-04-25', 'F', 'Nguyen', 'Ava', 'ava.nguyen@example.com', '5556789012');
 
 INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-VALUES (DATE '1993-01-11', 'M', 'Moore', 'David', 'david.moore@example.com', 5557890123);
+VALUES (DATE '1993-01-11', 'M', 'Hughes', 'Liam', 'liam.hughes@example.com', '5557890123');
 
 INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-VALUES (DATE '1985-11-06', 'F', 'Taylor', 'Jessica', 'jessica.taylor@example.com', 5558901234);
+VALUES (DATE '1985-11-06', 'F', 'Stewart', 'Mia', 'mia.stewart@example.com', '5558901234');
 
 INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-VALUES (DATE '1998-02-18', 'M', 'Anderson', 'Daniel', 'daniel.anderson@example.com', 5559012345);
-INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+VALUES (DATE '1998-02-18', 'M', 'Wheeler', 'Lucas', 'lucas.wheeler@example.com', '5559012345');
 
-VALUES (DATE '1981-07-09', 'F', 'Thomas', 'Laura', 'laura.thomas@example.com', 5550123456);
+INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
+VALUES (DATE '1981-07-09', 'F', 'Gordon', 'Chloe', 'chloe.gordon@example.com', '5550123456');
 COMMIT;
+
 
 -- Specialty data
 INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Cardiology', 'Specializes in diagnosing and treating heart diseases.', 200000, 400000);
@@ -404,8 +414,8 @@ WHERE bloodwork.patient_fk=(SELECT patient_id FROM patient WHERE ROWNUM=1);
 -- This view shows all specialties that have the avg doctor age, avg years of experience, and the number of bloodwork orders
 CREATE OR REPLACE VIEW doctor_specialty_view AS SELECT
 specialty.title, 
-AVG(FLOOR(MONTHS_BETWEEN(SYSDATE, doctor.dob)/12)) AS "Avg Doctor Age",
-AVG(doctor.yoe) AS "Doctor's Avg Years of Experience",
+FLOOR(AVG(FLOOR(MONTHS_BETWEEN(SYSDATE, doctor.dob)/12))) AS "Avg Doctor Age",
+FLOOR(AVG(doctor.yoe)) AS "Doctor's Avg Years of Experience",
 COUNT(bloodwork.date_submitted) AS "Total Bloodwork Orders"
 FROM specialty 
 INNER JOIN doctor ON specialty.specialty_id=doctor.specialty_fk
@@ -439,3 +449,79 @@ BEGIN
   ROLLBACK;
 END;
 -- TRIGGERS --
+
+
+-- DML STATEMENTS --
+-- Query 1: Select all columns and all rows from one table 
+SELECT * FROM patient;
+
+-- Query 2: Select five columns and all rows from one table 
+SELECT cholesterol, triglycerides, hdl, ldl, creatinine FROM bloodwork;
+
+-- Query 3: Select all columns from all rows from one view 
+SELECT * FROM doctor_specialty_view;
+
+-- Query 4: Using a join on 2 tables, select all columns and all rows from the tables without the use of a Cartesian product 
+SELECT * FROM doctor INNER JOIN specialty ON doctor.specialty_fk=specialty.specialty_id;
+
+-- Query 5: Select and order data retrieved from one table 
+SELECT * FROM lab ORDER BY yearly_profit DESC;
+
+-- Query 6: Using a join on 3 tables, select 5 columns from the 3 tables. Use syntax that would limit the output to 10 rows
+SELECT patient.first_name ||' '|| patient.last_name AS "Patient", doctor.first_name ||' '|| doctor.last_name AS "Doctor", 
+bloodwork.cholesterol, bloodwork.hdl, bloodwork.ldl FROM bloodwork
+JOIN patient ON bloodwork.patient_fk=patient.patient_id
+JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id;
+
+-- Query 7: Select distinct rows using joins on 3 tables 
+-- Query 8: Use GROUP BY and HAVING in a select statement using one or more tables 
+-- Query 9: Use IN clause to select data from one or more tables 
+-- Query 10: Select length of one column from one table (use LENGTH function) 
+-- Query 11: Delete one record from one table. Use select statements to demonstrate the table contents before and after the DELETE statement. Make sure you use ROLLBACK afterwards so that the data will not be physically removed
+-- Query 12: Update one record from one table. Use select statements to demonstrate the table contents before and after the UPDATE statement. Make sure you use ROLLBACK afterwards so that the data will not be physically removed 
+-- Perform 8 Additional Advanced Queries 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- #1 show all bloodwork with doctor and specialty
+SELECT bloodwork.bloodwork_id, CONCAT('Dr.', doctor.last_name) AS "Doctor", specialty.title FROM bloodwork 
+JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
+JOIN specialty ON doctor.specialty_fk=specialty.specialty_id;
+
+-- #2 show bloodwork results with patient order by date tested
+SELECT * FROM patient
+JOIN bloodwork ON patient.patient_id=bloodwork.patient_fk
+ORDER BY bloodwork.date_tested;
+
+-- #3 show all male patients order by dob and who age
+SELECT gender, first_name, last_name, dob, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) AS "Age"
+FROM patient WHERE gender='M'
+ORDER BY dob;
+
+-- #4 show all doctors who have at least 25 years of experience
+SELECT doctor.first_name, doctor.last_name, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) AS "Age", 
+doctor.yoe, specialty.title, specialty.avg_salary
+FROM doctor 
+JOIN specialty ON doctor.specialty_fk=specialty.specialty_id
+WHERE yoe >= 25 ORDER BY dob DESC;
+
+-- #5 show all labs 
+
+-- DML STATEMENTS --
