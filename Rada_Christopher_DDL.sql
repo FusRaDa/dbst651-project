@@ -469,59 +469,72 @@ SELECT * FROM lab ORDER BY yearly_profit DESC;
 
 -- Query 6: Using a join on 3 tables, select 5 columns from the 3 tables. Use syntax that would limit the output to 10 rows
 SELECT patient.first_name ||' '|| patient.last_name AS "Patient", doctor.first_name ||' '|| doctor.last_name AS "Doctor", 
-bloodwork.cholesterol, bloodwork.hdl, bloodwork.ldl FROM bloodwork
+bloodwork.cholesterol, bloodwork.hdl, bloodwork.ldl FROM bloodwork 
 JOIN patient ON bloodwork.patient_fk=patient.patient_id
-JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id;
+JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
+WHERE ROWNUM<=10;
 
 -- Query 7: Select distinct rows using joins on 3 tables 
+SELECT DISTINCT specialty.title FROM specialty
+JOIN doctor ON specialty.specialty_id=doctor.specialty_fk
+JOIN bloodwork ON doctor.doctor_id=bloodwork.doctor_fk;
+
 -- Query 8: Use GROUP BY and HAVING in a select statement using one or more tables 
+SELECT patient.patient_id, patient.first_name,
+COUNT(*) AS "# of Tests",
+FLOOR(AVG(bloodwork.cholesterol)) AS "Avg Cholesterol",
+FLOOR(AVG(bloodwork.ldl) )AS "Avg LDL",
+FLOOR(AVG(bloodwork.hdl) )AS "Avg HDL"
+FROM patient
+JOIN bloodwork ON patient.patient_id=bloodwork.patient_fk
+GROUP BY patient.patient_id, patient.first_name
+HAVING FLOOR(AVG(bloodwork.cholesterol))>200;
+
+
 -- Query 9: Use IN clause to select data from one or more tables 
--- Query 10: Select length of one column from one table (use LENGTH function) 
+SELECT dob FROM patient WHERE dob IN (SELECT dob FROM doctor);
+
+-- Query 10: Select length of one column from one table (use LENGTH function)
+SELECT LENGTH(description) FROM specialty;
+
 -- Query 11: Delete one record from one table. Use select statements to demonstrate the table contents before and after the DELETE statement. Make sure you use ROLLBACK afterwards so that the data will not be physically removed
+DELETE FROM bloodwork WHERE ROWNUM=1;
+SELECT COUNT(*) FROM bloodwork;
+ROLLBACK;
+SELECT COUNT(*) FROM bloodwork;
+
 -- Query 12: Update one record from one table. Use select statements to demonstrate the table contents before and after the UPDATE statement. Make sure you use ROLLBACK afterwards so that the data will not be physically removed 
--- Perform 8 Additional Advanced Queries 
+ALTER TRIGGER prevent_bloodwork_update DISABLE;
+UPDATE bloodwork SET cholesterol=9999 WHERE ROWNUM=1;
+SELECT * FROM bloodwork WHERE ROWNUM=1;
+ROLLBACK;
+SELECT * FROM bloodwork WHERE ROWNUM=1;
+ALTER TRIGGER prevent_bloodwork_update ENABLE;
 
+-- Perform 8 Additional Advanced Queries --
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- #1 show all bloodwork with doctor and specialty
+-- Query 13: show all bloodwork with doctor and specialty
 SELECT bloodwork.bloodwork_id, CONCAT('Dr.', doctor.last_name) AS "Doctor", specialty.title FROM bloodwork 
 JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
 JOIN specialty ON doctor.specialty_fk=specialty.specialty_id;
 
--- #2 show bloodwork results with patient order by date tested
+-- Query 14: show bloodwork results with patient order by date tested
 SELECT * FROM patient
 JOIN bloodwork ON patient.patient_id=bloodwork.patient_fk
 ORDER BY bloodwork.date_tested;
 
--- #3 show all male patients order by dob and who age
+-- Query 15: show all male patients order by dob and who age
 SELECT gender, first_name, last_name, dob, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) AS "Age"
 FROM patient WHERE gender='M'
 ORDER BY dob;
 
--- #4 show all doctors who have at least 25 years of experience
+-- Query 16: show all doctors who have at least 25 years of experience
 SELECT doctor.first_name, doctor.last_name, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) AS "Age", 
 doctor.yoe, specialty.title, specialty.avg_salary
 FROM doctor 
 JOIN specialty ON doctor.specialty_fk=specialty.specialty_id
 WHERE yoe >= 25 ORDER BY dob DESC;
 
--- #5 show all labs 
+-- Query 17: show all labs 
 
 -- DML STATEMENTS --
