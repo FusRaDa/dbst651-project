@@ -4,6 +4,7 @@ SET ECHO ON;
 SET SERVEROUTPUT ON;
 SET LINESIZE 150;
 SET PAGESIZE 30;
+SET DEFINE OFF;
 -- SETTINGS --
 
 
@@ -448,38 +449,39 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('Bloodwork can no longer be updated if date tested has been entered.');
   ROLLBACK;
 END;
+/
 -- TRIGGERS --
 
 
 -- DML STATEMENTS --
--- Query 1: Select all columns and all rows from one table 
+-- Query 1: Select all columns and all rows from one table; select all rows and columns from patient table
 SELECT * FROM patient;
 
--- Query 2: Select five columns and all rows from one table 
+-- Query 2: Select five columns and all rows from one table; select test results from all rows in bloodwork table
 SELECT cholesterol, triglycerides, hdl, ldl, creatinine FROM bloodwork;
 
--- Query 3: Select all columns from all rows from one view 
+-- Query 3: Select all columns from all rows from one view; select all rows and columns from doctor_specialty_view
 SELECT * FROM doctor_specialty_view;
 
--- Query 4: Using a join on 2 tables, select all columns and all rows from the tables without the use of a Cartesian product 
+-- Query 4: Using a join on 2 tables, select all columns and all rows from the tables without the use of a Cartesian product; join doctor and specialty table and select all rows and columns
 SELECT * FROM doctor INNER JOIN specialty ON doctor.specialty_fk=specialty.specialty_id;
 
--- Query 5: Select and order data retrieved from one table 
+-- Query 5: Select and order data retrieved from one table; show all yearly profit of every lab
 SELECT * FROM lab ORDER BY yearly_profit DESC;
 
--- Query 6: Using a join on 3 tables, select 5 columns from the 3 tables. Use syntax that would limit the output to 10 rows
+-- Query 6: Using a join on 3 tables, select 5 columns from the 3 tables. Use syntax that would limit the output to 10 rows; join patient, doctor, and bloodwork limit to 10 rows
 SELECT patient.first_name ||' '|| patient.last_name AS "Patient", doctor.first_name ||' '|| doctor.last_name AS "Doctor", 
 bloodwork.cholesterol, bloodwork.hdl, bloodwork.ldl FROM bloodwork 
 JOIN patient ON bloodwork.patient_fk=patient.patient_id
 JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
 WHERE ROWNUM<=10;
 
--- Query 7: Select distinct rows using joins on 3 tables 
+-- Query 7: Select distinct rows using joins on 3 tables; show all specialties invovlved in the bloodwork
 SELECT DISTINCT specialty.title FROM specialty
 JOIN doctor ON specialty.specialty_id=doctor.specialty_fk
 JOIN bloodwork ON doctor.doctor_id=bloodwork.doctor_fk;
 
--- Query 8: Use GROUP BY and HAVING in a select statement using one or more tables 
+-- Query 8: Use GROUP BY and HAVING in a select statement using one or more tables; show avg test results grouped by patient and is over 200
 SELECT patient.patient_id,
 COUNT(*) AS "# of Tests",
 FLOOR(AVG(bloodwork.cholesterol)) AS "Avg Cholesterol",
@@ -491,10 +493,10 @@ GROUP BY patient.patient_id
 HAVING FLOOR(AVG(bloodwork.cholesterol))>200;
 
 
--- Query 9: Use IN clause to select data from one or more tables 
+-- Query 9: Use IN clause to select data from one or more tables; select patient's dob that are the same as the doctor's; 
 SELECT dob FROM patient WHERE dob IN (SELECT dob FROM doctor);
 
--- Query 10: Select length of one column from one table (use LENGTH function)
+-- Query 10: Select length of one column from one table (use LENGTH function); show number of char in description of specialty
 SELECT LENGTH(description) FROM specialty;
 
 -- Query 11: Delete one record from one table. Use select statements to demonstrate the table contents before and after the DELETE statement. Make sure you use ROLLBACK afterwards so that the data will not be physically removed
@@ -588,4 +590,4 @@ TO_CHAR(MEDIAN(bun), 'fm9999990.00') AS "Avg BUN"
 FROM bloodwork
 JOIN patient ON bloodwork.patient_fk=patient.patient_id
 GROUP BY gender;
-
+-- DML STATEMENTS --

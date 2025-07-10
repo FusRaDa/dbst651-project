@@ -1,1167 +1,1835 @@
-SQL> SET ECHO ON
-
-SQL> SET SERVEROUTPUT ON
-
-SQL> SET LINESIZE 150
-
-SQL> SET PAGESIZE 30
-
+SQL> -- SETTINGS --
+SQL> -- Turn on echo, serveroutput, linesize, and pagesize
+SQL> SET ECHO ON;
+SQL> SET SERVEROUTPUT ON;
+SQL> SET LINESIZE 150;
+SQL> SET PAGESIZE 30;
+SQL> SET DEFINE OFF;
+SQL> -- SETTINGS --
+SQL> 
+SQL> 
+SQL> -- DROPS --
+SQL> -- Drop all tables for testing purposes and clear project db
 SQL> DROP TABLE bloodwork;
-
-
 
 Table BLOODWORK dropped.
 
-
-
 SQL> DROP TABLE lab;
-
-
 
 Table LAB dropped.
 
-
-
 SQL> DROP TABLE patient;
-
-
 
 Table PATIENT dropped.
 
-
-
 SQL> DROP TABLE doctor;
-
-
 
 Table DOCTOR dropped.
 
-
-
 SQL> DROP TABLE specialty;
-
-
 
 Table SPECIALTY dropped.
 
-
-
+SQL> 
+SQL> -- Uncomment & run if on DBST651 Remote Lab Computer
+SQL> -- DROP TABLE course;
+SQL> -- DROP TABLE enrollment;
+SQL> -- DROP TABLE grade;
+SQL> -- DROP TABLE grade_conversion;
+SQL> -- DROP TABLE grade_type;
+SQL> -- DROP TABLE grate_type_weight;
+SQL> -- DROP TABLE instructor;
+SQL> -- DROP TABLE section;
+SQL> -- DROP TABLE student;
+SQL> -- DROP TABLE zipcode;
+SQL> 
+SQL> -- Drop sequences for testing
 SQL> DROP SEQUENCE lab_seq;
-
-
 
 Sequence LAB_SEQ dropped.
 
-
-
 SQL> DROP SEQUENCE patient_seq;
-
-
 
 Sequence PATIENT_SEQ dropped.
 
-
-
 SQL> DROP SEQUENCE specialty_seq;
-
-
 
 Sequence SPECIALTY_SEQ dropped.
 
-
-
 SQL> DROP SEQUENCE doctor_seq;
-
-
 
 Sequence DOCTOR_SEQ dropped.
 
-
-
 SQL> DROP SEQUENCE bloodwork_seq;
-
-
 
 Sequence BLOODWORK_SEQ dropped.
 
-
-
 SQL> DROP SEQUENCE med_license_seq;
-
-
 
 Sequence MED_LICENSE_SEQ dropped.
 
-
-
+SQL> -- DROPS --
+SQL> 
+SQL> 
+SQL> -- SEQUENCES --
+SQL> -- Sequence for all pk's - surrogate keys
 SQL> CREATE SEQUENCE lab_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
-
-
 
 Sequence LAB_SEQ created.
 
-
-
 SQL> CREATE SEQUENCE patient_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
-
-
 
 Sequence PATIENT_SEQ created.
 
-
-
 SQL> CREATE SEQUENCE specialty_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
-
-
 
 Sequence SPECIALTY_SEQ created.
 
-
-
 SQL> CREATE SEQUENCE doctor_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
-
-
 
 Sequence DOCTOR_SEQ created.
 
-
-
 SQL> CREATE SEQUENCE bloodwork_seq START WITH 1 INCREMENT BY 1 NOCYCLE;
-
-
 
 Sequence BLOODWORK_SEQ created.
 
-
-
+SQL> 
+SQL> -- Sequence for natural key in doctor
 SQL> CREATE SEQUENCE med_license_seq START WITH 1245 INCREMENT BY 5 NOCYCLE;
-
-
 
 Sequence MED_LICENSE_SEQ created.
 
-
-
+SQL> -- SEQUENCES --
+SQL> 
+SQL> 
+SQL> -- TABLES --
 SQL> CREATE TABLE lab (
-
   2    lab_id INT DEFAULT lab_seq.NEXTVAL PRIMARY KEY,
-
   3    name VARCHAR(200) NOT NULL,
-
   4    address VARCHAR(200) NOT NULL,
-
   5    phone_number INT NOT NULL,
-
   6    yearly_profit INT NOT NULL
-
   7  );
-
-
 
 Table LAB created.
 
-
-
 SQL> 
-
 SQL> CREATE TABLE patient (
-
   2    patient_id INT DEFAULT patient_seq.NEXTVAL PRIMARY KEY,
-
   3    dob DATE NOT NULL,
-
   4    gender VARCHAR(1) CONSTRAINT GenderDomain CHECK (GENDER IN ('M', 'F')) NOT NULL, -- M is male, F is female
-
   5    first_name VARCHAR(200) NOT NULL,
-
   6    last_name VARCHAR(200) NOT NULL,
-
   7    email VARCHAR(200),
-
   8    phone_number VARCHAR(200) NOT NULL
-
   9  );
-
-
 
 Table PATIENT created.
 
-
-
 SQL> 
-
 SQL> CREATE TABLE specialty (
-
   2    specialty_id INT DEFAULT specialty_seq.NEXTVAL PRIMARY KEY,
-
   3    title VARCHAR(200) NOT NULL,
-
   4    description VARCHAR(200),
-
   5    avg_tuition INT,
-
   6    avg_salary INT
-
   7  );
-
-
 
 Table SPECIALTY created.
 
-
-
 SQL> 
-
 SQL> CREATE TABLE doctor (
-
   2    doctor_id INT DEFAULT doctor_seq.NEXTVAL PRIMARY KEY,
-
   3    first_name VARCHAR(200) NOT NULL,
-
   4    last_name VARCHAR(200) NOT NULL,
-
   5    dob DATE NOT NULL,
-
   6    yoe INT NOT NULL, -- years of experience
-
   7    med_license INT DEFAULT med_license_seq.NEXTVAL,
-
   8    specialty_fk INT,
-
   9    FOREIGN KEY (specialty_fk) REFERENCES specialty(specialty_id) ON DELETE SET NULL
-
  10  );
-
-
 
 Table DOCTOR created.
 
-
-
 SQL> 
-
 SQL> CREATE TABLE bloodwork (
-
   2    bloodwork_id INT DEFAULT bloodwork_seq.NEXTVAL PRIMARY KEY,
-
   3    cholesterol FLOAT, --100 to 300
-
   4    triglycerides FLOAT, --
-
   5    hdl FLOAT, --25 to 150
-
   6    ldl FLOAT, --25 to 150
-
   7    creatinine FLOAT,
-
   8    bun FLOAT,
-
   9    date_tested DATE,
-
  10    date_submitted DATE DEFAULT CURRENT_DATE,
-
  11    patient_fk INT,
-
  12    doctor_fk INT,
-
  13    lab_fk INT,
-
  14    FOREIGN KEY (patient_fk) REFERENCES patient(patient_id) ON DELETE SET NULL,
-
  15    FOREIGN KEY (doctor_fk) REFERENCES doctor(doctor_id) ON DELETE SET NULL,
-
  16    FOREIGN KEY (lab_fk) REFERENCES lab(lab_id) ON DELETE SET NULL
-
  17  );
-
-
 
 Table BLOODWORK created.
 
-
-
+SQL> -- TABLES --
+SQL> 
+SQL> 
+SQL> -- INDEXES --
 SQL> CREATE INDEX in_doctor_specialty ON doctor (specialty_fk);
-
-
 
 Index IN_DOCTOR_SPECIALTY created.
 
-
-
 SQL> CREATE INDEX in_bloodwork_patient ON bloodwork (patient_fk);
-
-
 
 Index IN_BLOODWORK_PATIENT created.
 
-
-
 SQL> CREATE INDEX in_bloodwork_doctor ON bloodwork (doctor_fk);
-
-
 
 Index IN_BLOODWORK_DOCTOR created.
 
-
-
 SQL> CREATE INDEX in_bloodwork_lab ON bloodwork (lab_fk);
-
-
 
 Index IN_BLOODWORK_LAB created.
 
-
-
+SQL> -- INDEXES --
+SQL> 
+SQL> 
+SQL> -- INSERT TABLE DATA --
+SQL> -- Lab data
 SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('BloodCorp', '4512 Maple Drive, Oakwood, CA 93514', 4544551454, 30000000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('DiagTest', '8901 Birch Avenue, Springfield, IL 62704', 3451112304, 450000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('TrackQuest', '2134 Pine Street, Rivertown, TX 75201', 4540438942, 750000);
 
-
-
 1 row inserted.
 
-
-
-SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Labzone', '6789 Cedar Lane, Greenfield, WI 53220', 0238889090, 1500000);
-
-
+SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Labzone', '6789 Cedar Lane, Greenfield, WI 53220', 3238889090, 1500000);
 
 1 row inserted.
-
-
 
 SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Stealth Health', '4321 Elm Road, Silver Creek, NV 89031', 3403300034, 300000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Blue Hero', '1567 Willow Boulevard, Lakeside, MI 49009', 7678873467, 2000000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('John & Jody', '3286 Cherry Circle, Sunnyside, FL 33603', 9045003445, 25000000);
 
-
-
-Substitution cancelled
+1 row inserted.
 
 SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Freedom University', '8954 Aspen Court, Brookfield, OH 44017', 1232344545, 1000000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Clinical Care', '1023 Oakwood Parkway, Millbrook, NY 12545', 9898444569, 40000000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO lab (name, address, phone_number, yearly_profit) VALUES ('Riskaverse', '7432 Maple Ridge, Highland Park, NJ 08901', 3440065600, 160000);
 
-
-
 1 row inserted.
-
-
 
 SQL> COMMIT;
 
-
-
 Commit complete.
 
-
-
+SQL> 
+SQL> -- Patient data
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '1987-01-25', 'M', 'Walker', 'Ethan', 'ethan.walker@example.com', '5551234567');
 
-
-
 1 row inserted.
 
-
-
 SQL> 
-
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '1995-03-17', 'F', 'Murphy', 'Lily', 'lily.murphy@example.com', '5552345678');
 
-
-
 1 row inserted.
 
-
-
 SQL> 
-
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '1983-06-29', 'M', 'Reed', 'Noah', 'noah.reed@example.com', '5553456789');
 
-
-
 1 row inserted.
 
-
-
 SQL> 
-
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '2000-10-02', 'F', 'Bailey', 'Grace', 'grace.bailey@example.com', '5554567890');
 
-
-
 1 row inserted.
 
-
-
 SQL> 
-
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '1978-09-14', 'M', 'Jenkins', 'Owen', 'owen.jenkins@example.com', '5555678901');
 
-
-
 1 row inserted.
 
-
-
 SQL> 
-
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '1990-04-25', 'F', 'Nguyen', 'Ava', 'ava.nguyen@example.com', '5556789012');
 
-
-
 1 row inserted.
 
-
-
 SQL> 
-
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '1993-01-11', 'M', 'Hughes', 'Liam', 'liam.hughes@example.com', '5557890123');
 
-
-
 1 row inserted.
 
-
-
 SQL> 
-
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '1985-11-06', 'F', 'Stewart', 'Mia', 'mia.stewart@example.com', '5558901234');
 
-
-
 1 row inserted.
 
-
-
 SQL> 
-
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '1998-02-18', 'M', 'Wheeler', 'Lucas', 'lucas.wheeler@example.com', '5559012345');
 
-
-
 1 row inserted.
-
-
 
 SQL> 
-
 SQL> INSERT INTO patient (dob, gender, last_name, first_name, email, phone_number) 
-
   2  VALUES (DATE '1981-07-09', 'F', 'Gordon', 'Chloe', 'chloe.gordon@example.com', '5550123456');
 
-
-
 1 row inserted.
-
-
 
 SQL> COMMIT;
 
-
-
 Commit complete.
 
-
-
+SQL> 
+SQL> 
+SQL> -- Specialty data
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Cardiology', 'Specializes in diagnosing and treating heart diseases.', 200000, 400000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Neurology', 'Focuses on disorders of the brain, spinal cord, and nervous system.', 200000, 250000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Orthopedic Surgery', 'Specializes in the treatment of musculoskeletal issues such as bones, joints, and ligaments.', 200000, 500000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Pediatrics', 'Medical care for infants, children, and adolescents.', 200000, 180000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Dermatology', 'Focuses on the diagnosis and treatment of skin, hair, and nail conditions.', 200000, 350000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Psychiatry', 'Specializes in mental health, including diagnosing and treating disorders such as depression, anxiety, and schizophrenia.', 200000, 220000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Obstetrics and Gynecology (OB/GYN)', 'Focuses on women’s health, including pregnancy, childbirth, and reproductive system disorders.', 200000, 280000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Gastroenterology', 'Specializes in the digestive system, including the stomach, intestines, and liver.', 200000, 400000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Endocrinology', 'Deals with disorders of the endocrine system, including diabetes, thyroid conditions, and hormonal imbalances.', 200000, 250000);
 
-
-
 1 row inserted.
-
-
 
 SQL> INSERT INTO specialty (title, description, avg_tuition, avg_salary) VALUES ('Oncology', 'Specializes in diagnosing and treating cancer, including chemotherapy and radiation.', 200000, 400000);
 
-
-
 1 row inserted.
-
-
 
 SQL> COMMIT;
 
-
-
 Commit complete.
 
-
-
+SQL> 
+SQL> -- Doctor data
 SQL> DECLARE
-
   2    cardiology_id INT;
-
   3    neurology_id INT;
-
   4    orthopedic_id INT;
-
   5    pediatrics_id INT;
-
   6    dermatology_id INT;
-
   7    obgyn_id INT;
-
   8    gastroenterology_id INT;
-
   9    endocrinology_id INT;
-
  10    oncology_id INT;
-
  11  BEGIN
-
  12    SELECT specialty_id INTO cardiology_id FROM specialty WHERE title='Cardiology';
-
  13    SELECT specialty_id INTO neurology_id FROM specialty WHERE title='Neurology';
-
  14    SELECT specialty_id INTO orthopedic_id FROM specialty WHERE title='Orthopedic Surgery';
-
  15    SELECT specialty_id INTO pediatrics_id FROM specialty WHERE title='Pediatrics';
-
  16    SELECT specialty_id INTO dermatology_id FROM specialty WHERE title='Dermatology';
-
  17    SELECT specialty_id INTO obgyn_id FROM specialty WHERE title='Obstetrics and Gynecology (OB/GYN)';
-
  18    SELECT specialty_id INTO gastroenterology_id FROM specialty WHERE title='Gastroenterology';
-
  19    SELECT specialty_id INTO endocrinology_id FROM specialty WHERE title='Endocrinology';
-
  20    SELECT specialty_id INTO oncology_id FROM specialty WHERE title='Oncology';
-
  21  
-
  22    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  23    VALUES ('John', 'Smith', DATE '1982-05-12', 23, cardiology_id);
-
  24  
-
  25    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  26    VALUES ('Emily', 'Johnson', DATE '1978-03-17', 28, neurology_id);
-
  27  
-
  28    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  29    VALUES ('Michael', 'Brown', DATE '1983-06-29', 22, orthopedic_id);
-
  30  
-
  31    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  32    VALUES ('Sarah', 'Davis', DATE '1975-10-02', 30, pediatrics_id);
-
  33  
-
  34    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  35    VALUES ('James', 'Miller', DATE '1980-09-14', 25, oncology_id);
-
  36  
-
  37    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  38    VALUES ('Olivia', 'Wilson', DATE '1985-04-25', 20, dermatology_id);
-
  39  
-
  40    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  41    VALUES ('David', 'Moore', DATE '1976-01-11', 29, obgyn_id);
-
  42  
-
  43    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  44    VALUES ('Jessica', 'Taylor', DATE '1984-11-06', 21, endocrinology_id);
-
  45  
-
  46    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  47    VALUES ('Daniel', 'Anderson', DATE '1980-02-18', 26, oncology_id);
-
  48  
-
  49    INSERT INTO doctor (first_name, last_name, dob, yoe, specialty_fk) 
-
  50    VALUES ('Laura', 'Thomas', DATE '1972-07-09', 33, oncology_id);
-
  51    COMMIT;
-
  52  
-
  53  END;
-
  54  /
 
-
-
 PL/SQL procedure successfully completed.
 
-
-
+SQL> 
+SQL> -- Bloodwork data
+SQL> -- Patient 1's bloodwork history
 SQL> DECLARE
-
   2    first_row_patient_id INT;
-
   3    first_row_doctor INT;
-
   4    first_row_lab INT;
-
   5  BEGIN
-
   6    SELECT patient_id INTO first_row_patient_id FROM patient WHERE ROWNUM=1;
-
   7    SELECT doctor_id INTO first_row_doctor FROM doctor WHERE ROWNUM=1;
-
   8    SELECT lab_id INTO first_row_lab FROM lab WHERE ROWNUM=1;
-
   9  
-
  10    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  11    VALUES (250, 190, 25, 180, 0.92, 15.7, DATE '2025-06-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  12  
-
  13    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  14    VALUES (240, 185, 28, 169, 0.95, 15.3, DATE '2025-07-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  15  
-
  16    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  17    VALUES (230, 180, 31, 158, 0.91, 15.9, DATE '2025-08-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  18  
-
  19    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  20    VALUES (220, 175, 34, 147, 0.99, 14.8, DATE '2025-09-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  21  
-
  22    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  23    VALUES (210, 170, 37, 136, 0.94, 15.2, DATE '2025-10-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  24  
-
  25    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  26    VALUES (200, 165, 40, 125, 0.98, 14.6, DATE '2025-11-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  27  
-
  28    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  29    VALUES (190, 160, 43, 114, 0.93, 15.4, DATE '2025-12-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  30  
-
  31    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  32    VALUES (180, 155, 46, 103, 0.90, 15.1, DATE '2026-01-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  33  
-
  34    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  35    VALUES (170, 150, 49, 92, 0.97, 14.9, DATE '2026-02-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  36  
-
  37    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  38    VALUES (160, 145, 52, 81, 0.91, 14.7, DATE '2026-03-15', first_row_patient_id, first_row_doctor, first_row_lab);
-
  39    COMMIT;
-
  40  
-
  41  END;
-
  42  /
 
-
-
 PL/SQL procedure successfully completed.
 
-
-
+SQL> -- INSERT TABLE DATA --
+SQL> 
+SQL> 
+SQL> -- Functions to randomly select ID's of patient (except first patient in row), doctor, and lab
 SQL> CREATE OR REPLACE FUNCTION random_patient_id
-
   2  RETURN INT
-
   3  IS 
-
   4    patient_id INT;
-
   5    first_row_patient_id INT;
-
   6  BEGIN
-
   7    SELECT patient_id INTO first_row_patient_id FROM patient WHERE ROWNUM=1;
-
   8    SELECT patient_id INTO patient_id
-
   9    FROM (
-
  10      SELECT patient_id 
-
  11      FROM patient 
-
  12      WHERE patient_id!=first_row_patient_id
-
  13      ORDER BY DBMS_RANDOM.RANDOM)
-
  14    WHERE ROWNUM = 1;
-
  15    RETURN patient_id;
-
  16    DBMS_OUTPUT.PUT_LINE(patient_id);
-
  17  END;
-
  18  /
-
-
 
 Function RANDOM_PATIENT_ID compiled
 
-
-
 SQL> 
-
 SQL> CREATE OR REPLACE FUNCTION random_doctor_id
-
   2  RETURN INT
-
   3  IS doctor_id INT;
-
   4  BEGIN
-
   5    SELECT doctor_id INTO doctor_id
-
   6    FROM (
-
   7      SELECT doctor_id 
-
   8      FROM doctor
-
   9      ORDER BY DBMS_RANDOM.RANDOM)
-
  10    WHERE ROWNUM = 1;
-
  11    RETURN doctor_id;
-
  12    DBMS_OUTPUT.PUT_LINE(doctor_id);
-
  13  END;
-
  14  /
-
-
 
 Function RANDOM_DOCTOR_ID compiled
 
-
-
 SQL> 
-
 SQL> CREATE OR REPLACE FUNCTION random_lab_id
-
   2  RETURN INT
-
   3  IS lab_id INT;
-
   4  BEGIN
-
   5    SELECT lab_id INTO lab_id
-
   6    FROM (
-
   7      SELECT lab_id 
-
   8      FROM lab
-
   9      ORDER BY DBMS_RANDOM.RANDOM)
-
  10    WHERE ROWNUM = 1;
-
  11    RETURN lab_id;
-
  12    DBMS_OUTPUT.PUT_LINE(lab_id);
-
  13  END;
-
  14  /
-
-
 
 Function RANDOM_LAB_ID compiled
 
-
-
+SQL> 
+SQL> -- Random bloodwork for the rest of the patients
 SQL> BEGIN
-
   2  
-
   3    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
   4    VALUES (227, 391, 64, 137, 1.12, 17.4, DATE '2024-12-03', random_patient_id, random_doctor_id, random_lab_id);
-
   5  
-
   6    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
   7    VALUES (163, 237, 53, 112, 0.94, 25.3, DATE '2024-03-07', random_patient_id, random_doctor_id, random_lab_id);
-
   8  
-
   9    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  10    VALUES (291, 480, 76, 183, 1.07, 16.8, DATE '2025-07-19', random_patient_id, random_doctor_id, random_lab_id);
-
  11  
-
  12    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  13    VALUES (115, 293, 39, 121, 1.01, 28.6, DATE '2025-10-22', random_patient_id, random_doctor_id, random_lab_id);
-
  14  
-
  15    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  16    VALUES (250, 126, 87, 110, 0.95, 12.9, DATE '2025-11-16', random_patient_id, random_doctor_id, random_lab_id);
-
  17  
-
  18    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  19    VALUES (139, 376, 59, 159, 1.14, 18.4, DATE '2026-01-05', random_patient_id, random_doctor_id, random_lab_id);
-
  20  
-
  21    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  22    VALUES (284, 262, 41, 96, 0.82, 19.2, DATE '2026-06-02', random_patient_id, random_doctor_id, random_lab_id);
-
  23  
-
  24    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  25    VALUES (205, 182, 28, 88, 0.91, 27.5, DATE '2026-08-13', random_patient_id, random_doctor_id, random_lab_id);
-
  26  
-
  27    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  28    VALUES (175, 123, 49, 172, 1.04, 22.1, DATE '2026-02-18', random_patient_id, random_doctor_id, random_lab_id);
-
  29  
-
  30    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  31    VALUES (261, 305, 57, 153, 1.08, 13.3, DATE '2026-04-25', random_patient_id, random_doctor_id, random_lab_id);
-
  32  
-
  33    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  34    VALUES (212, 257, 62, 119, 1.02, 21.7, DATE '2026-08-03', random_patient_id, random_doctor_id, random_lab_id);
-
  35  
-
  36    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  37    VALUES (236, 426, 22, 107, 0.88, 24.6, DATE '2026-05-15', random_patient_id, random_doctor_id, random_lab_id);
-
  38  
-
  39    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  40    VALUES (265, 315, 54, 174, 1.13, 10.8, DATE '2026-09-30', random_patient_id, random_doctor_id, random_lab_id);
-
  41  
-
  42    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  43    VALUES (214, 188, 36, 135, 1.05, 15.4, DATE '2026-11-08', random_patient_id, random_doctor_id, random_lab_id);
-
  44  
-
  45    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  46    VALUES (276, 442, 64, 133, 0.91, 28.2, DATE '2027-01-19', random_patient_id, random_doctor_id, random_lab_id);
-
  47  
-
  48    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  49    VALUES (133, 163, 78, 109, 0.97, 11.5, DATE '2027-02-27', random_patient_id, random_doctor_id, random_lab_id);
-
  50  
-
  51    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  52    VALUES (192, 345, 40, 125, 1.12, 20.6, DATE '2027-07-12', random_patient_id, random_doctor_id, random_lab_id);
-
  53  
-
  54    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  55    VALUES (281, 208, 67, 150, 0.89, 26.3, DATE '2027-09-09', random_patient_id, random_doctor_id, random_lab_id);
-
  56  
-
  57    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  58    VALUES (154, 131, 90, 94, 0.96, 24.0, DATE '2027-12-04', random_patient_id, random_doctor_id, random_lab_id);
-
  59  
-
  60    INSERT INTO bloodwork (cholesterol, triglycerides, hdl, ldl, creatinine, bun, date_tested, patient_fk, doctor_fk, lab_fk) 
-
  61    VALUES (239, 399, 23, 182, 1.09, 14.7, DATE '2027-05-17', random_patient_id, random_doctor_id, random_lab_id);
-
  62    COMMIT;
-
  63  
-
  64  END;
-
  65  /
-
-
 
 PL/SQL procedure successfully completed.
 
-
-
+SQL> 
+SQL> 
+SQL> -- VIEWS --
+SQL> -- This view shows all the bloodwork of the first patient in the first row
 SQL> CREATE OR REPLACE VIEW first_patient_bloodwork_view AS SELECT 
-
   2  bloodwork.cholesterol AS "Cholestorol (mg/dL)", bloodwork.triglycerides AS "Triglycerides (mg/dL)", 
-
   3  bloodwork.hdl AS "High Density Lipo-proteins (mg/dL)", bloodwork.ldl AS "Low Density Lipo-proteins (mg/dL)",
-
   4  bloodwork.creatinine AS "Creatinine (mg/dL)", bloodwork.bun AS "Blood Urea Nitrogen (mg/dL)", 
-
   5  bloodwork.date_tested AS "Date Tested", CONCAT('Dr. ', doctor.last_name) AS "Doctor", 
-
   6  lab.name AS "Laboratory" FROM bloodwork 
-
   7  INNER JOIN patient ON bloodwork.patient_fk=patient.patient_id
-
   8  INNER JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
-
   9  INNER JOIN lab ON bloodwork.lab_fk=lab.lab_id
-
  10  WHERE bloodwork.patient_fk=(SELECT patient_id FROM patient WHERE ROWNUM=1);
-
-
 
 View FIRST_PATIENT_BLOODWORK_VIEW created.
 
-
-
+SQL> 
+SQL> 
+SQL> -- This view shows all specialties that have the avg doctor age, avg years of experience, and the number of bloodwork orders
 SQL> CREATE OR REPLACE VIEW doctor_specialty_view AS SELECT
-
   2  specialty.title, 
-
   3  FLOOR(AVG(FLOOR(MONTHS_BETWEEN(SYSDATE, doctor.dob)/12))) AS "Avg Doctor Age",
-
   4  FLOOR(AVG(doctor.yoe)) AS "Doctor's Avg Years of Experience",
-
   5  COUNT(bloodwork.date_submitted) AS "Total Bloodwork Orders"
-
   6  FROM specialty 
-
   7  INNER JOIN doctor ON specialty.specialty_id=doctor.specialty_fk
-
   8  INNER JOIN bloodwork ON doctor.doctor_id=bloodwork.doctor_fk
-
   9  GROUP BY specialty.title;
-
-
 
 View DOCTOR_SPECIALTY_VIEW created.
 
-
-
+SQL> -- VIEWS --
+SQL> 
+SQL> 
+SQL> -- TRIGGERS --
+SQL> -- This trigger prevents the date tested to be updated in the bloodwork unless all blood results have been filled in
 SQL> CREATE OR REPLACE TRIGGER confirm_bloodwork_update AFTER UPDATE ON bloodwork FOR EACH ROW
-
   2  WHEN (NEW.date_tested IS NOT NULL 
-
   3  AND (NEW.cholesterol IS NULL
-
   4  OR NEW.cholesterol IS NULL
-
   5  OR NEW.cholesterol IS NULL
-
   6  OR NEW.cholesterol IS NULL
-
   7  OR NEW.cholesterol IS NULL
-
   8  OR NEW.cholesterol IS NULL))
-
   9  BEGIN
-
  10    DBMS_OUTPUT.PUT_LINE('Bloodwork results must all be filled in before updating test date.');
-
  11    ROLLBACK;
-
  12  END;
-
  13  /
-
-
 
 Trigger CONFIRM_BLOODWORK_UPDATE compiled
 
-
-
+SQL> -- / -> End of first trigger block
+SQL> 
+SQL> --This trigger prevents bloodwork from being updated if the date tested is not null
 SQL> CREATE OR REPLACE TRIGGER prevent_bloodwork_update AFTER UPDATE ON bloodwork FOR EACH ROW
-
   2  WHEN (NEW.date_tested IS NOT NULL)
-
   3  BEGIN
-
   4    DBMS_OUTPUT.PUT_LINE('Bloodwork can no longer be updated if date tested has been entered.');
-
   5    ROLLBACK;
-
   6  END;
-
-  7  -- TRIGGERS --
-
-
+  7  /
 
 Trigger PREVENT_BLOODWORK_UPDATE compiled
+
+SQL> -- TRIGGERS --
+SQL> 
+SQL> 
+SQL> -- DML STATEMENTS --
+SQL> -- Query 1: Select all columns and all rows from one table; select all rows and columns from patient table
+SQL> SELECT * FROM patient;
+
+PATIENT_ID DOB       G
+---------- --------- -
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+EMAIL
+------------------------------------------------------------------------------------------------------------------------------------------------------
+PHONE_NUMBER                                                                                                                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------
+         1 25-JAN-87 M 
+Ethan                                                                                                                                                 
+Walker                                                                                                                                                
+ethan.walker@example.com                                                                                                                              
+5551234567                                                                                                                                            
+
+         2 17-MAR-95 F 
+Lily                                                                                                                                                  
+Murphy                                                                                                                                                
+lily.murphy@example.com                                                                                                                               
+5552345678                                                                                                                                            
+
+         3 29-JUN-83 M 
+Noah                                                                                                                                                  
+Reed                                                                                                                                                  
+noah.reed@example.com                                                                                                                                 
+5553456789                                                                                                                                            
+
+         4 02-OCT-00 F 
+
+PATIENT_ID DOB       G
+---------- --------- -
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+EMAIL
+------------------------------------------------------------------------------------------------------------------------------------------------------
+PHONE_NUMBER                                                                                                                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Grace                                                                                                                                                 
+Bailey                                                                                                                                                
+grace.bailey@example.com                                                                                                                              
+5554567890                                                                                                                                            
+
+         5 14-SEP-78 M 
+Owen                                                                                                                                                  
+Jenkins                                                                                                                                               
+owen.jenkins@example.com                                                                                                                              
+5555678901                                                                                                                                            
+
+         6 25-APR-90 F 
+Ava                                                                                                                                                   
+Nguyen                                                                                                                                                
+ava.nguyen@example.com                                                                                                                                
+5556789012                                                                                                                                            
+
+         7 11-JAN-93 M 
+Liam                                                                                                                                                  
+
+PATIENT_ID DOB       G
+---------- --------- -
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+EMAIL
+------------------------------------------------------------------------------------------------------------------------------------------------------
+PHONE_NUMBER                                                                                                                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Hughes                                                                                                                                                
+liam.hughes@example.com                                                                                                                               
+5557890123                                                                                                                                            
+
+         8 06-NOV-85 F 
+Mia                                                                                                                                                   
+Stewart                                                                                                                                               
+mia.stewart@example.com                                                                                                                               
+5558901234                                                                                                                                            
+
+         9 18-FEB-98 M 
+Lucas                                                                                                                                                 
+Wheeler                                                                                                                                               
+lucas.wheeler@example.com                                                                                                                             
+5559012345                                                                                                                                            
+
+        10 09-JUL-81 F 
+Chloe                                                                                                                                                 
+Gordon                                                                                                                                                
+
+PATIENT_ID DOB       G
+---------- --------- -
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+EMAIL
+------------------------------------------------------------------------------------------------------------------------------------------------------
+PHONE_NUMBER                                                                                                                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------
+chloe.gordon@example.com                                                                                                                              
+5550123456                                                                                                                                            
+
+
+10 rows selected. 
+
+SQL> 
+SQL> -- Query 2: Select five columns and all rows from one table; select test results from all rows in bloodwork table
+SQL> SELECT cholesterol, triglycerides, hdl, ldl, creatinine FROM bloodwork;
+
+CHOLESTEROL TRIGLYCERIDES        HDL        LDL CREATININE
+----------- ------------- ---------- ---------- ----------
+        250           190         25        180        .92
+        240           185         28        169        .95
+        230           180         31        158        .91
+        220           175         34        147        .99
+        210           170         37        136        .94
+        200           165         40        125        .98
+        190           160         43        114        .93
+        180           155         46        103         .9
+        170           150         49         92        .97
+        160           145         52         81        .91
+        227           391         64        137       1.12
+        163           237         53        112        .94
+        291           480         76        183       1.07
+        115           293         39        121       1.01
+        250           126         87        110        .95
+        139           376         59        159       1.14
+        284           262         41         96        .82
+        205           182         28         88        .91
+        175           123         49        172       1.04
+        261           305         57        153       1.08
+        212           257         62        119       1.02
+        236           426         22        107        .88
+        265           315         54        174       1.13
+        214           188         36        135       1.05
+        276           442         64        133        .91
+        133           163         78        109        .97
+        192           345         40        125       1.12
+
+CHOLESTEROL TRIGLYCERIDES        HDL        LDL CREATININE
+----------- ------------- ---------- ---------- ----------
+        281           208         67        150        .89
+        154           131         90         94        .96
+        239           399         23        182       1.09
+
+30 rows selected. 
+
+SQL> 
+SQL> -- Query 3: Select all columns from all rows from one view; select all rows and columns from doctor_specialty_view
+SQL> SELECT * FROM doctor_specialty_view;
+
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Avg Doctor Age Doctor's Avg Years of Experience Total Bloodwork Orders
+-------------- -------------------------------- ----------------------
+Cardiology                                                                                                                                            
+            43                               23                     12
+
+Orthopedic Surgery                                                                                                                                    
+            42                               22                      1
+
+Pediatrics                                                                                                                                            
+            49                               30                      5
+
+Dermatology                                                                                                                                           
+            40                               20                      3
+
+Obstetrics and Gynecology (OB/GYN)                                                                                                                    
+            49                               29                      3
+
+Endocrinology                                                                                                                                         
+            40                               21                      1
+
+Oncology                                                                                                                                              
+            44                               25                      5
+
+
+7 rows selected. 
+
+SQL> 
+SQL> -- Query 4: Using a join on 2 tables, select all columns and all rows from the tables without the use of a Cartesian product; join doctor and specialty table and select all rows and columns
+SQL> SELECT * FROM doctor INNER JOIN specialty ON doctor.specialty_fk=specialty.specialty_id;
+
+ DOCTOR_ID
+----------
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DOB              YOE MED_LICENSE SPECIALTY_FK SPECIALTY_ID
+--------- ---------- ----------- ------------ ------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DESCRIPTION
+------------------------------------------------------------------------------------------------------------------------------------------------------
+AVG_TUITION AVG_SALARY
+----------- ----------
+         1 
+John                                                                                                                                                  
+Smith                                                                                                                                                 
+12-MAY-82         23        1245            1            1 
+Cardiology                                                                                                                                            
+Specializes in diagnosing and treating heart diseases.                                                                                                
+     200000     400000
+
+         2 
+Emily                                                                                                                                                 
+Johnson                                                                                                                                               
+17-MAR-78         28        1250            2            2 
+Neurology                                                                                                                                             
+Focuses on disorders of the brain, spinal cord, and nervous system.                                                                                   
+     200000     250000
+
+ DOCTOR_ID
+----------
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DOB              YOE MED_LICENSE SPECIALTY_FK SPECIALTY_ID
+--------- ---------- ----------- ------------ ------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DESCRIPTION
+------------------------------------------------------------------------------------------------------------------------------------------------------
+AVG_TUITION AVG_SALARY
+----------- ----------
+
+         3 
+Michael                                                                                                                                               
+Brown                                                                                                                                                 
+29-JUN-83         22        1255            3            3 
+Orthopedic Surgery                                                                                                                                    
+Specializes in the treatment of musculoskeletal issues such as bones, joints, and ligaments.                                                          
+     200000     500000
+
+         4 
+Sarah                                                                                                                                                 
+Davis                                                                                                                                                 
+02-OCT-75         30        1260            4            4 
+Pediatrics                                                                                                                                            
+Medical care for infants, children, and adolescents.                                                                                                  
+
+ DOCTOR_ID
+----------
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DOB              YOE MED_LICENSE SPECIALTY_FK SPECIALTY_ID
+--------- ---------- ----------- ------------ ------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DESCRIPTION
+------------------------------------------------------------------------------------------------------------------------------------------------------
+AVG_TUITION AVG_SALARY
+----------- ----------
+     200000     180000
+
+         6 
+Olivia                                                                                                                                                
+Wilson                                                                                                                                                
+25-APR-85         20        1270            5            5 
+Dermatology                                                                                                                                           
+Focuses on the diagnosis and treatment of skin, hair, and nail conditions.                                                                            
+     200000     350000
+
+         7 
+David                                                                                                                                                 
+Moore                                                                                                                                                 
+11-JAN-76         29        1275            7            7 
+Obstetrics and Gynecology (OB/GYN)                                                                                                                    
+
+ DOCTOR_ID
+----------
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DOB              YOE MED_LICENSE SPECIALTY_FK SPECIALTY_ID
+--------- ---------- ----------- ------------ ------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DESCRIPTION
+------------------------------------------------------------------------------------------------------------------------------------------------------
+AVG_TUITION AVG_SALARY
+----------- ----------
+Focuses on women’s health, including pregnancy, childbirth, and reproductive system disorders.                                                        
+     200000     280000
+
+         8 
+Jessica                                                                                                                                               
+Taylor                                                                                                                                                
+06-NOV-84         21        1280            9            9 
+Endocrinology                                                                                                                                         
+Deals with disorders of the endocrine system, including diabetes, thyroid conditions, and hormonal imbalances.                                        
+     200000     250000
+
+         5 
+James                                                                                                                                                 
+Miller                                                                                                                                                
+14-SEP-80         25        1265           10           10 
+
+ DOCTOR_ID
+----------
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DOB              YOE MED_LICENSE SPECIALTY_FK SPECIALTY_ID
+--------- ---------- ----------- ------------ ------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DESCRIPTION
+------------------------------------------------------------------------------------------------------------------------------------------------------
+AVG_TUITION AVG_SALARY
+----------- ----------
+Oncology                                                                                                                                              
+Specializes in diagnosing and treating cancer, including chemotherapy and radiation.                                                                  
+     200000     400000
+
+         9 
+Daniel                                                                                                                                                
+Anderson                                                                                                                                              
+18-FEB-80         26        1285           10           10 
+Oncology                                                                                                                                              
+Specializes in diagnosing and treating cancer, including chemotherapy and radiation.                                                                  
+     200000     400000
+
+        10 
+Laura                                                                                                                                                 
+Thomas                                                                                                                                                
+
+ DOCTOR_ID
+----------
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DOB              YOE MED_LICENSE SPECIALTY_FK SPECIALTY_ID
+--------- ---------- ----------- ------------ ------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+DESCRIPTION
+------------------------------------------------------------------------------------------------------------------------------------------------------
+AVG_TUITION AVG_SALARY
+----------- ----------
+09-JUL-72         33        1290           10           10 
+Oncology                                                                                                                                              
+Specializes in diagnosing and treating cancer, including chemotherapy and radiation.                                                                  
+     200000     400000
+
+
+10 rows selected. 
+
+SQL> 
+SQL> -- Query 5: Select and order data retrieved from one table; show all yearly profit of every lab
+SQL> SELECT * FROM lab ORDER BY yearly_profit DESC;
+
+    LAB_ID
+----------
+NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+ADDRESS
+------------------------------------------------------------------------------------------------------------------------------------------------------
+PHONE_NUMBER YEARLY_PROFIT
+------------ -------------
+         9 
+Clinical Care                                                                                                                                         
+1023 Oakwood Parkway, Millbrook, NY 12545                                                                                                             
+  9898444569      40000000
+
+         1 
+BloodCorp                                                                                                                                             
+4512 Maple Drive, Oakwood, CA 93514                                                                                                                   
+  4544551454      30000000
+
+         7 
+John & Jody                                                                                                                                           
+3286 Cherry Circle, Sunnyside, FL 33603                                                                                                               
+  9045003445      25000000
+
+         6 
+Blue Hero                                                                                                                                             
+1567 Willow Boulevard, Lakeside, MI 49009                                                                                                             
+  7678873467       2000000
+
+         4 
+
+    LAB_ID
+----------
+NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+ADDRESS
+------------------------------------------------------------------------------------------------------------------------------------------------------
+PHONE_NUMBER YEARLY_PROFIT
+------------ -------------
+Labzone                                                                                                                                               
+6789 Cedar Lane, Greenfield, WI 53220                                                                                                                 
+  3238889090       1500000
+
+         8 
+Freedom University                                                                                                                                    
+8954 Aspen Court, Brookfield, OH 44017                                                                                                                
+  1232344545       1000000
+
+         3 
+TrackQuest                                                                                                                                            
+2134 Pine Street, Rivertown, TX 75201                                                                                                                 
+  4540438942        750000
+
+         2 
+DiagTest                                                                                                                                              
+8901 Birch Avenue, Springfield, IL 62704                                                                                                              
+  3451112304        450000
+
+         5 
+Stealth Health                                                                                                                                        
+
+    LAB_ID
+----------
+NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+ADDRESS
+------------------------------------------------------------------------------------------------------------------------------------------------------
+PHONE_NUMBER YEARLY_PROFIT
+------------ -------------
+4321 Elm Road, Silver Creek, NV 89031                                                                                                                 
+  3403300034        300000
+
+        10 
+Riskaverse                                                                                                                                            
+7432 Maple Ridge, Highland Park, NJ 08901                                                                                                             
+  3440065600        160000
+
+
+10 rows selected. 
+
+SQL> 
+SQL> -- Query 6: Using a join on 3 tables, select 5 columns from the 3 tables. Use syntax that would limit the output to 10 rows; join patient, doctor, and bloodwork limit to 10 rows
+SQL> SELECT patient.first_name ||' '|| patient.last_name AS "Patient", doctor.first_name ||' '|| doctor.last_name AS "Doctor", 
+  2  bloodwork.cholesterol, bloodwork.hdl, bloodwork.ldl FROM bloodwork 
+  3  JOIN patient ON bloodwork.patient_fk=patient.patient_id
+  4  JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
+  5  WHERE ROWNUM<=10;
+
+Patient
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+CHOLESTEROL        HDL        LDL
+----------- ---------- ----------
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        250         25        180
+
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        240         28        169
+
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        230         31        158
+
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        220         34        147
+
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        210         37        136
+
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        200         40        125
+
+Patient
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+CHOLESTEROL        HDL        LDL
+----------- ---------- ----------
+
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        190         43        114
+
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        180         46        103
+
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        170         49         92
+
+Ethan Walker                                                                                                                                          
+John Smith                                                                                                                                            
+        160         52         81
+
+
+10 rows selected. 
+
+SQL> 
+SQL> -- Query 7: Select distinct rows using joins on 3 tables; show all specialties invovlved in the bloodwork
+SQL> SELECT DISTINCT specialty.title FROM specialty
+  2  JOIN doctor ON specialty.specialty_id=doctor.specialty_fk
+  3  JOIN bloodwork ON doctor.doctor_id=bloodwork.doctor_fk;
+
+TITLE                                                                                                                                                 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Cardiology
+Orthopedic Surgery
+Pediatrics
+Dermatology
+Obstetrics and Gynecology (OB/GYN)
+Endocrinology
+Oncology
+
+7 rows selected. 
+
+SQL> 
+SQL> -- Query 8: Use GROUP BY and HAVING in a select statement using one or more tables; show avg test results grouped by patient and is over 200
+SQL> SELECT patient.patient_id,
+  2  COUNT(*) AS "# of Tests",
+  3  FLOOR(AVG(bloodwork.cholesterol)) AS "Avg Cholesterol",
+  4  FLOOR(AVG(bloodwork.ldl) )AS "Avg LDL",
+  5  FLOOR(AVG(bloodwork.hdl) )AS "Avg HDL"
+  6  FROM patient
+  7  JOIN bloodwork ON patient.patient_id=bloodwork.patient_fk
+  8  GROUP BY patient.patient_id
+  9  HAVING FLOOR(AVG(bloodwork.cholesterol))>200;
+
+PATIENT_ID # of Tests Avg Cholesterol    Avg LDL    Avg HDL
+---------- ---------- --------------- ---------- ----------
+         1         10             205        130         38
+         3          3             217        147         56
+         4          2             211        127         50
+         6          2             239        154         45
+         8          1             261        153         57
+         9          6             221        123         60
+        10          3             237        118         57
+
+7 rows selected. 
+
+SQL> 
+SQL> 
+SQL> -- Query 9: Use IN clause to select data from one or more tables; select patient's dob that are the same as the doctor's; 
+SQL> SELECT dob FROM patient WHERE dob IN (SELECT dob FROM doctor);
+
+DOB      
+---------
+29-JUN-83
+
+SQL> 
+SQL> -- Query 10: Select length of one column from one table (use LENGTH function); show number of char in description of specialty
+SQL> SELECT LENGTH(description) FROM specialty;
+
+LENGTH(DESCRIPTION)
+-------------------
+                 54
+                 67
+                 92
+                 52
+                 74
+                121
+                 94
+                 82
+                110
+                 84
+
+10 rows selected. 
+
+SQL> 
+SQL> -- Query 11: Delete one record from one table. Use select statements to demonstrate the table contents before and after the DELETE statement. Make sure you use ROLLBACK afterwards so that the data will not be physically removed
+SQL> DELETE FROM bloodwork WHERE ROWNUM=1;
+
+1 row deleted.
+
+SQL> SELECT COUNT(*) FROM bloodwork;
+
+  COUNT(*)
+----------
+        29
+
+SQL> ROLLBACK;
+
+Rollback complete.
+
+SQL> SELECT COUNT(*) FROM bloodwork;
+
+  COUNT(*)
+----------
+        30
+
+SQL> 
+SQL> -- Query 12: Update one record from one table. Use select statements to demonstrate the table contents before and after the UPDATE statement. Make sure you use ROLLBACK afterwards so that the data will not be physically removed 
+SQL> ALTER TRIGGER prevent_bloodwork_update DISABLE;
+
+Trigger PREVENT_BLOODWORK_UPDATE altered.
+
+SQL> UPDATE bloodwork SET cholesterol=9999 WHERE ROWNUM=1;
+
+1 row updated.
+
+SQL> SELECT * FROM bloodwork WHERE ROWNUM=1;
+
+BLOODWORK_ID CHOLESTEROL TRIGLYCERIDES        HDL        LDL CREATININE        BUN DATE_TEST DATE_SUBM PATIENT_FK  DOCTOR_FK     LAB_FK
+------------ ----------- ------------- ---------- ---------- ---------- ---------- --------- --------- ---------- ---------- ----------
+           1        9999           190         25        180        .92       15.7 15-JUN-25 09-JUL-25          1          1          1
+
+SQL> ROLLBACK;
+
+Rollback complete.
+
+SQL> SELECT * FROM bloodwork WHERE ROWNUM=1;
+
+BLOODWORK_ID CHOLESTEROL TRIGLYCERIDES        HDL        LDL CREATININE        BUN DATE_TEST DATE_SUBM PATIENT_FK  DOCTOR_FK     LAB_FK
+------------ ----------- ------------- ---------- ---------- ---------- ---------- --------- --------- ---------- ---------- ----------
+           1         250           190         25        180        .92       15.7 15-JUN-25 09-JUL-25          1          1          1
+
+SQL> ALTER TRIGGER prevent_bloodwork_update ENABLE;
+
+Trigger PREVENT_BLOODWORK_UPDATE altered.
+
+SQL> 
+SQL> -- Perform 8 Additional Advanced Queries --
+SQL> 
+SQL> -- Query 13: show cholesterol levels over 200 with patients and their doctor's specialty
+SQL> SELECT CONCAT('Dr.', doctor.last_name) AS "Doctor", 
+  2  specialty.title, bloodwork.cholesterol AS "Cholesterol",
+  3  patient.first_name ||' '|| patient.last_name AS "Patient",
+  4  FLOOR(MONTHS_BETWEEN(SYSDATE, patient.dob)/12) AS "Patient Age"
+  5  FROM bloodwork
+  6  JOIN doctor ON bloodwork.doctor_fk=doctor.doctor_id
+  7  JOIN patient ON bloodwork.patient_fk=patient.patient_id
+  8  JOIN specialty ON doctor.specialty_fk=specialty.specialty_id
+  9  WHERE bloodwork.cholesterol>200
+ 10  ORDER BY bloodwork.cholesterol DESC;
+
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Cholesterol
+-----------
+Patient
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Patient Age
+-----------
+Dr.Brown                                                                                                                                              
+Orthopedic Surgery                                                                                                                                    
+        291 
+Lucas Wheeler                                                                                                                                         
+         27
+
+Dr.Wilson                                                                                                                                             
+Dermatology                                                                                                                                           
+        284 
+Grace Bailey                                                                                                                                          
+         24
+
+Dr.Smith                                                                                                                                              
+Cardiology                                                                                                                                            
+        281 
+Noah Reed                                                                                                                                             
+         42
+
+Dr.Davis                                                                                                                                              
+
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Cholesterol
+-----------
+Patient
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Patient Age
+-----------
+Pediatrics                                                                                                                                            
+        276 
+Lucas Wheeler                                                                                                                                         
+         27
+
+Dr.Davis                                                                                                                                              
+Pediatrics                                                                                                                                            
+        265 
+Ava Nguyen                                                                                                                                            
+         35
+
+Dr.Anderson                                                                                                                                           
+Oncology                                                                                                                                              
+        261 
+Mia Stewart                                                                                                                                           
+         39
+
+Dr.Smith                                                                                                                                              
+Cardiology                                                                                                                                            
+
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Cholesterol
+-----------
+Patient
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Patient Age
+-----------
+        250 
+Ethan Walker                                                                                                                                          
+         38
+
+Dr.Anderson                                                                                                                                           
+Oncology                                                                                                                                              
+        250 
+Chloe Gordon                                                                                                                                          
+         44
+
+Dr.Smith                                                                                                                                              
+Cardiology                                                                                                                                            
+        240 
+Ethan Walker                                                                                                                                          
+         38
+
+Dr.Moore                                                                                                                                              
+Obstetrics and Gynecology (OB/GYN)                                                                                                                    
+        239 
+
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Cholesterol
+-----------
+Patient
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Patient Age
+-----------
+Noah Reed                                                                                                                                             
+         42
+
+Dr.Moore                                                                                                                                              
+Obstetrics and Gynecology (OB/GYN)                                                                                                                    
+        236 
+Chloe Gordon                                                                                                                                          
+         44
+
+Dr.Smith                                                                                                                                              
+Cardiology                                                                                                                                            
+        230 
+Ethan Walker                                                                                                                                          
+         38
+
+Dr.Davis                                                                                                                                              
+Pediatrics                                                                                                                                            
+        227 
+Chloe Gordon                                                                                                                                          
+
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Cholesterol
+-----------
+Patient
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Patient Age
+-----------
+         44
+
+Dr.Smith                                                                                                                                              
+Cardiology                                                                                                                                            
+        220 
+Ethan Walker                                                                                                                                          
+         38
+
+Dr.Miller                                                                                                                                             
+Oncology                                                                                                                                              
+        214 
+Ava Nguyen                                                                                                                                            
+         35
+
+Dr.Anderson                                                                                                                                           
+Oncology                                                                                                                                              
+        212 
+Lucas Wheeler                                                                                                                                         
+         27
+
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+TITLE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Cholesterol
+-----------
+Patient
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Patient Age
+-----------
+
+Dr.Smith                                                                                                                                              
+Cardiology                                                                                                                                            
+        210 
+Ethan Walker                                                                                                                                          
+         38
+
+Dr.Wilson                                                                                                                                             
+Dermatology                                                                                                                                           
+        205 
+Lucas Wheeler                                                                                                                                         
+         27
+
+
+18 rows selected. 
+
+SQL> 
+SQL> -- Query 14: show doctor's # of tests ordered, and min/max age of their patients
+SQL> SELECT doctor.doctor_id, 
+  2  CONCAT('Dr. ', doctor.last_name) AS "Doctor",
+  3  COUNT(*) AS "# of Tests Ordered",
+  4  MIN(FLOOR(MONTHS_BETWEEN(SYSDATE, patient.dob)/12)) AS "Youngest Patient",
+  5  MAX(FLOOR(MONTHS_BETWEEN(SYSDATE, patient.dob)/12)) AS "Oldest Patient"
+  6  FROM doctor
+  7  JOIN bloodwork ON doctor.doctor_id=bloodwork.doctor_fk
+  8  JOIN patient ON bloodwork.patient_fk=patient.patient_id
+  9  GROUP BY doctor.doctor_id, doctor.last_name
+ 10  ORDER BY "# of Tests Ordered" DESC;
+
+ DOCTOR_ID
+----------
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+# of Tests Ordered Youngest Patient Oldest Patient
+------------------ ---------------- --------------
+         1 
+Dr. Smith                                                                                                                                             
+                12               38             42
+
+         4 
+Dr. Davis                                                                                                                                             
+                 5               27             44
+
+         9 
+Dr. Anderson                                                                                                                                          
+                 4               27             44
+
+         7 
+Dr. Moore                                                                                                                                             
+                 3               27             44
+
+         6 
+Dr. Wilson                                                                                                                                            
+                 3               24             27
+
+         8 
+Dr. Taylor                                                                                                                                            
+                 1               27             27
+
+ DOCTOR_ID
+----------
+Doctor
+------------------------------------------------------------------------------------------------------------------------------------------------------
+# of Tests Ordered Youngest Patient Oldest Patient
+------------------ ---------------- --------------
+
+         3 
+Dr. Brown                                                                                                                                             
+                 1               27             27
+
+         5 
+Dr. Miller                                                                                                                                            
+                 1               35             35
+
+
+8 rows selected. 
+
+SQL> 
+SQL> -- Query 15: show all patients that are between the min and max ages of doctors
+SQL> SELECT * FROM patient WHERE dob BETWEEN (SELECT MIN(dob) FROM doctor) AND (SELECT MAX(dob) FROM doctor);
+
+PATIENT_ID DOB       G
+---------- --------- -
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+EMAIL
+------------------------------------------------------------------------------------------------------------------------------------------------------
+PHONE_NUMBER                                                                                                                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------
+         3 29-JUN-83 M 
+Noah                                                                                                                                                  
+Reed                                                                                                                                                  
+noah.reed@example.com                                                                                                                                 
+5553456789                                                                                                                                            
+
+         5 14-SEP-78 M 
+Owen                                                                                                                                                  
+Jenkins                                                                                                                                               
+owen.jenkins@example.com                                                                                                                              
+5555678901                                                                                                                                            
+
+        10 09-JUL-81 F 
+Chloe                                                                                                                                                 
+Gordon                                                                                                                                                
+chloe.gordon@example.com                                                                                                                              
+5550123456                                                                                                                                            
+
+
+SQL> 
+SQL> -- QUERY 16: show all lab's return rates (how fast they return results) 
+SQL> SELECT lab_id, name,
+  2  FLOOR(AVG(ABS(TRUNC(bloodwork.date_tested) - TRUNC(bloodwork.date_submitted)))) AS "Avg Turnover Rate (Days)"
+  3  FROM lab
+  4  JOIN bloodwork ON lab.lab_id=bloodwork.lab_fk
+  5  GROUP BY lab_id, name;
+
+    LAB_ID
+----------
+NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Avg Turnover Rate (Days)
+------------------------
+         1 
+BloodCorp                                                                                                                                             
+                     194
+
+         2 
+DiagTest                                                                                                                                              
+                     105
+
+         3 
+TrackQuest                                                                                                                                            
+                      10
+
+         5 
+Stealth Health                                                                                                                                        
+                     426
+
+         6 
+Blue Hero                                                                                                                                             
+                     540
+
+         7 
+John & Jody                                                                                                                                           
+                     481
+
+    LAB_ID
+----------
+NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Avg Turnover Rate (Days)
+------------------------
+
+        10 
+Riskaverse                                                                                                                                            
+                     310
+
+
+7 rows selected. 
+
+SQL> 
+SQL> -- Query 17: view labs and how many tests they've done
+SQL> SELECT lab.lab_id, lab.name,
+  2  MAX(lab.yearly_profit) AS "Yearly Profit",
+  3  COUNT(*) AS "# of Tests Done"
+  4  FROM lab
+  5  JOIN bloodwork ON lab.lab_id=bloodwork.lab_fk
+  6  GROUP BY lab.lab_id, lab.name
+  7  ORDER BY MAX(lab.yearly_profit) DESC;
+
+    LAB_ID
+----------
+NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Yearly Profit # of Tests Done
+------------- ---------------
+         1 
+BloodCorp                                                                                                                                             
+     30000000              14
+
+         7 
+John & Jody                                                                                                                                           
+     25000000               5
+
+         6 
+Blue Hero                                                                                                                                             
+      2000000               4
+
+         3 
+TrackQuest                                                                                                                                            
+       750000               1
+
+         2 
+DiagTest                                                                                                                                              
+       450000               1
+
+         5 
+Stealth Health                                                                                                                                        
+       300000               4
+
+    LAB_ID
+----------
+NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Yearly Profit # of Tests Done
+------------- ---------------
+
+        10 
+Riskaverse                                                                                                                                            
+       160000               1
+
+
+7 rows selected. 
+
+SQL> 
+SQL> -- QUERY 18: Calculate and compare total cholesterol vs given cholesterol and produce a % difference as accuracy, show what is less than 5% difference
+SQL> SELECT NVL(ldl, 0) + NVL(hdl, 0) AS "SUM of LDL & HDL",
+  2  .2 * NVL(triglycerides, 0) AS "20% of Triglycerides",
+  3  (.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) AS "Calculated Total Cholesterol",
+  4  cholesterol AS "Tested Cholesterol",
+  5  ROUND(ABS((.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) - cholesterol)/(((.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) + cholesterol)/2)*100, 2) 
+  6  AS "Percent Difference",
+  7  lab.name
+  8  FROM bloodwork 
+  9  JOIN lab ON bloodwork.lab_fk=lab.lab_id
+ 10  WHERE ROUND(ABS((.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) - cholesterol)/(((.2 * NVL(triglycerides, 0)) + NVL(ldl, 0) + NVL(hdl, 0) + cholesterol)/2)*100, 2) < 5;
+
+SUM of LDL & HDL 20% of Triglycerides Calculated Total Cholesterol Tested Cholesterol Percent Difference
+---------------- -------------------- ---------------------------- ------------------ ------------------
+NAME                                                                                                                                                  
+------------------------------------------------------------------------------------------------------------------------------------------------------
+             205                   38                          243                250               2.84 
+BloodCorp                                                                                                                                             
+
+             197                   37                          234                240               2.53 
+BloodCorp                                                                                                                                             
+
+             189                   36                          225                230                2.2 
+BloodCorp                                                                                                                                             
+
+             181                   35                          216                220               1.83 
+BloodCorp                                                                                                                                             
+
+             173                   34                          207                210               1.44 
+BloodCorp                                                                                                                                             
+
+             165                   33                          198                200               1.01 
+BloodCorp                                                                                                                                             
+
+             157                   32                          189                190                .53 
+BloodCorp                                                                                                                                             
+
+             149                   31                          180                180                  0 
+BloodCorp                                                                                                                                             
+
+             141                   30                          171                170                .59 
+
+SUM of LDL & HDL 20% of Triglycerides Calculated Total Cholesterol Tested Cholesterol Percent Difference
+---------------- -------------------- ---------------------------- ------------------ ------------------
+NAME                                                                                                                                                  
+------------------------------------------------------------------------------------------------------------------------------------------------------
+BloodCorp                                                                                                                                             
+
+             133                   29                          162                160               1.24 
+BloodCorp                                                                                                                                             
+
+             210                   61                          271                261               3.76 
+BloodCorp                                                                                                                                             
+
+             171                 37.6                        208.6                214               2.56 
+Stealth Health                                                                                                                                        
+
+             197                 88.4                        285.4                276               3.35 
+John & Jody                                                                                                                                           
+
+
+13 rows selected. 
+
+SQL> 
+SQL> -- Query 19: Show all upcoming birthdays for patients and doctors
+SQL> SELECT * FROM
+  2  (SELECT 'Doctor' AS "Doctor/Patient", dob, first_name, last_name, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) + 1 AS "Upcoming Age" FROM doctor
+  3  UNION ALL
+  4  SELECT 'Patient' AS "Doctor/Patient", dob, first_name, last_name, FLOOR(MONTHS_BETWEEN(SYSDATE, dob)/12) + 1 AS "Upcoming Age" FROM patient)
+  5  WHERE EXTRACT(MONTH FROM dob) >= EXTRACT(MONTH FROM SYSDATE)
+  6  ORDER BY EXTRACT(MONTH FROM dob) ASC, EXTRACT(DAY FROM dob) ASC;
+
+Doctor/ DOB
+------- ---------
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Upcoming Age
+------------
+Doctor  09-JUL-72 
+Laura                                                                                                                                                 
+Thomas                                                                                                                                                
+          54
+
+Patient 09-JUL-81 
+Chloe                                                                                                                                                 
+Gordon                                                                                                                                                
+          45
+
+Patient 14-SEP-78 
+Owen                                                                                                                                                  
+Jenkins                                                                                                                                               
+          47
+
+Doctor  14-SEP-80 
+James                                                                                                                                                 
+Miller                                                                                                                                                
+          45
+
+Patient 02-OCT-00 
+
+Doctor/ DOB
+------- ---------
+FIRST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+LAST_NAME
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Upcoming Age
+------------
+Grace                                                                                                                                                 
+Bailey                                                                                                                                                
+          25
+
+Doctor  02-OCT-75 
+Sarah                                                                                                                                                 
+Davis                                                                                                                                                 
+          50
+
+Doctor  06-NOV-84 
+Jessica                                                                                                                                               
+Taylor                                                                                                                                                
+          41
+
+Patient 06-NOV-85 
+Mia                                                                                                                                                   
+Stewart                                                                                                                                               
+          40
+
+
+8 rows selected. 
+
+SQL> 
+SQL> -- Query 20: Group bloodwork results by gender and show median test results
+SQL> SELECT gender,
+  2  COUNT(*) AS "of Tests",
+  3  TO_CHAR(MEDIAN(cholesterol), 'fm9999990.00') AS "Avg Cholesterol",
+  4  TO_CHAR(MEDIAN(triglycerides), 'fm9999990.00') AS "Avg Triglycerides",
+  5  TO_CHAR(MEDIAN(hdl), 'fm9999990.00') AS "Avg HDL",
+  6  TO_CHAR(MEDIAN(ldl), 'fm9999990.00') AS "Avg LDL",
+  7  TO_CHAR(MEDIAN(creatinine), 'fm9999990.00') AS "Avg Creatinine",
+  8  TO_CHAR(MEDIAN(bun), 'fm9999990.00') AS "Avg BUN"
+  9  FROM bloodwork
+ 10  JOIN patient ON bloodwork.patient_fk=patient.patient_id
+ 11  GROUP BY gender;
+
+G   of Tests Avg Cholest Avg Triglyc Avg HDL     Avg LDL     Avg Creatin Avg BUN    
+- ---------- ----------- ----------- ----------- ----------- ----------- -----------
+F         10 231.50      299.00      51.50       136.00      1.05        17.90      
+M         20 207.50      181.00      44.50       125.00      0.95        15.55      
+
+SQL> -- DML STATEMENTS --
